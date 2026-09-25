@@ -241,6 +241,10 @@
                             type="time"
                             value="08:00"
                         >
+                        <label class="mt-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                            <input id="morningEnabled" type="checkbox" checked class="accent-purple-600">
+                            เปิดใช้งานมื้อนี้
+                        </label>
 
                     </div>
 
@@ -277,6 +281,10 @@
                             type="time"
                             value="12:00"
                         >
+                        <label class="mt-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                            <input id="noonEnabled" type="checkbox" checked class="accent-purple-600">
+                            เปิดใช้งานมื้อนี้
+                        </label>
 
                     </div>
 
@@ -313,6 +321,10 @@
                             type="time"
                             value="18:00"
                         >
+                        <label class="mt-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                            <input id="eveningEnabled" type="checkbox" checked class="accent-purple-600">
+                            เปิดใช้งานมื้อนี้
+                        </label>
 
                     </div>
 
@@ -349,6 +361,10 @@
                             type="time"
                             value="21:00"
                         >
+                        <label class="mt-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                            <input id="bedtimeEnabled" type="checkbox" checked class="accent-purple-600">
+                            เปิดใช้งานมื้อนี้
+                        </label>
 
                     </div>
 
@@ -606,7 +622,7 @@
             try {
 
                 const response = await fetch(
-                    `/api/pillbox/sync?deviceId=${DEVICE_ID}`
+                    `/api/pillbox/settings?deviceId=${DEVICE_ID}`
                 );
 
                 const data = await response.json();
@@ -651,6 +667,9 @@
                     document.getElementById(
                         "morningTime"
                     ).value = time;
+                    document.getElementById(
+                        "morningEnabled"
+                    ).checked = slots.morning.enabled;
 
 
                     document.getElementById(
@@ -678,6 +697,9 @@
                     document.getElementById(
                         "noonTime"
                     ).value = time;
+                    document.getElementById(
+                        "noonEnabled"
+                    ).checked = slots.noon.enabled;
 
 
                     document.getElementById(
@@ -705,6 +727,9 @@
                     document.getElementById(
                         "eveningTime"
                     ).value = time;
+                    document.getElementById(
+                        "eveningEnabled"
+                    ).checked = slots.evening.enabled;
 
 
                     document.getElementById(
@@ -732,6 +757,9 @@
                     document.getElementById(
                         "bedtimeTime"
                     ).value = time;
+                    document.getElementById(
+                        "bedtimeEnabled"
+                    ).checked = slots.bedtime.enabled;
 
 
                     document.getElementById(
@@ -873,22 +901,26 @@
 
                     morning: {
                         h: morning.h,
-                        m: morning.m
+                        m: morning.m,
+                        enabled: document.getElementById("morningEnabled").checked
                     },
 
                     noon: {
                         h: noon.h,
-                        m: noon.m
+                        m: noon.m,
+                        enabled: document.getElementById("noonEnabled").checked
                     },
 
                     evening: {
                         h: evening.h,
-                        m: evening.m
+                        m: evening.m,
+                        enabled: document.getElementById("eveningEnabled").checked
                     },
 
                     bedtime: {
                         h: bedtime.h,
-                        m: bedtime.m
+                        m: bedtime.m,
+                        enabled: document.getElementById("bedtimeEnabled").checked
                     }
 
                 }
@@ -917,10 +949,10 @@
             try {
 
                 const response = await fetch(
-                    "/api/web/update-slots",
+                    "/api/pillbox/settings",
                     {
 
-                        method: "POST",
+                        method: "PUT",
 
                         headers: {
                             "Content-Type":

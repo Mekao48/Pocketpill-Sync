@@ -18,25 +18,29 @@ const slotConfig = [
         name: "morning",
         index: 0,
         hourField: "morning_h",
-        minuteField: "morning_m"
+        minuteField: "morning_m",
+        enabledField: "morning_enabled"
     },
     {
         name: "noon",
         index: 1,
         hourField: "noon_h",
-        minuteField: "noon_m"
+        minuteField: "noon_m",
+        enabledField: "noon_enabled"
     },
     {
         name: "evening",
         index: 2,
         hourField: "evening_h",
-        minuteField: "evening_m"
+        minuteField: "evening_m",
+        enabledField: "evening_enabled"
     },
     {
         name: "bedtime",
         index: 3,
         hourField: "bedtime_h",
-        minuteField: "bedtime_m"
+        minuteField: "bedtime_m",
+        enabledField: "bedtime_enabled"
     }
 ];
 
@@ -74,6 +78,10 @@ async function checkMedicationReminders() {
 
         // ตรวจสอบทั้ง 4 ช่วงเวลา
         for (const slot of slotConfig) {
+
+            if (!device[slot.enabledField]) {
+                continue;
+            }
 
             const hour = Number(device[slot.hourField]);
             const minute = Number(device[slot.minuteField]);

@@ -50,6 +50,11 @@
             color: #c2410c;
         }
 
+        .status-skipped {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
         .empty-box {
             border: 2px dashed #e5e1f5;
             border-radius: 20px;
@@ -323,14 +328,21 @@
             const isDelayed =
                 item.is_delayed === true ||
                 item.is_delayed === 1;
+            const isSkipped =
+                item.is_skipped === true ||
+                item.is_skipped === 1;
 
             const statusClass =
-                isDelayed
+                isSkipped
+                    ? "status-skipped"
+                    : isDelayed
                     ? "status-delayed"
                     : "status-on-time";
 
             const statusText =
-                isDelayed
+                isSkipped
+                    ? "⚪ ข้ามมื้อ"
+                    : isDelayed
                     ? "🔴 ล่าช้า"
                     : "🟢 ตรงเวลา";
 
@@ -458,7 +470,7 @@
 
                 const response =
                     await fetch(
-                        `/api/history?deviceId=${DEVICE_ID}`
+                        `/api/pillbox/history?deviceId=${DEVICE_ID}&limit=20`
                     );
 
 
