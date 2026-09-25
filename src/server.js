@@ -14,7 +14,11 @@ const PORT = 3000;
 
 
 // รับข้อมูล JSON จาก ESP32 และหน้าเว็บไซต์
-app.use(express.json());
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 
 app.use(express.static("public"));
 

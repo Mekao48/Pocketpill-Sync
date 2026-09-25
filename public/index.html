@@ -29,7 +29,6 @@
             font-size: 18px;
             outline: none;
             transition: 0.2s;
-            background: white;
         }
 
         .time-input:focus {
@@ -84,43 +83,35 @@
 
         .nav-button {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 12px 10px;
-            border-radius: 16px;
+            text-align: center;
+            padding: 12px 14px;
+            border-radius: 14px;
             font-weight: 700;
             text-decoration: none;
-            transition: 0.2s;
             border: 2px solid #e5e1f5;
+            background: white;
+            color: #6b5b95;
+            transition: 0.2s;
         }
 
         .nav-button:hover {
-            transform: translateY(-1px);
+            border-color: #8b5cf6;
+            color: #7c3aed;
         }
 
         .nav-button.active {
-            background: linear-gradient(135deg, #7c3aed, #6366f1);
-            color: white;
+            background: #7c3aed;
             border-color: #7c3aed;
-            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.18);
-        }
-
-        .nav-button:not(.active) {
-            background: white;
-            color: #6b5b95;
+            color: white;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- ======================================== -->
     <!-- Header -->
-    <!-- ======================================== -->
-
     <header class="bg-white border-b border-purple-100">
+
         <div class="max-w-3xl mx-auto px-5 py-5">
 
             <div class="flex items-center justify-between">
@@ -142,45 +133,35 @@
             </div>
 
         </div>
+
     </header>
 
 
-    <!-- ======================================== -->
     <!-- Main -->
-    <!-- ======================================== -->
-
     <main class="max-w-3xl mx-auto px-5 py-7">
 
 
-        <!-- ======================================== -->
         <!-- Navigation -->
-        <!-- ======================================== -->
-
         <div class="flex gap-3 mb-5">
 
             <a
                 href="/"
                 class="nav-button active"
             >
-                ⏰
-                <span>ตั้งเวลา</span>
+                ⏰ <span>ตั้งเวลา</span>
             </a>
 
             <a
                 href="/history.html"
                 class="nav-button"
             >
-                📋
-                <span>ประวัติ</span>
+                📋 <span>ประวัติการกินยา</span>
             </a>
 
         </div>
 
 
-        <!-- ======================================== -->
         <!-- Schedule Card -->
-        <!-- ======================================== -->
-
         <section class="card p-6">
 
             <div class="mb-6">
@@ -200,10 +181,7 @@
             </div>
 
 
-            <!-- ======================================== -->
             <!-- Schedule Mode -->
-            <!-- ======================================== -->
-
             <div class="grid grid-cols-2 gap-3 mb-6">
 
                 <button
@@ -225,10 +203,7 @@
             </div>
 
 
-            <!-- ======================================== -->
             <!-- Manual Mode -->
-            <!-- ======================================== -->
-
             <div id="manualMode">
 
                 <div class="space-y-4">
@@ -240,6 +215,7 @@
                         <div class="flex items-center justify-between mb-3">
 
                             <div>
+
                                 <p class="text-lg font-bold text-gray-800">
                                     🌅 เช้า
                                 </p>
@@ -247,6 +223,7 @@
                                 <p class="text-sm text-gray-500">
                                     เวลากินยาช่วงเช้า
                                 </p>
+
                             </div>
 
                             <span
@@ -274,6 +251,7 @@
                         <div class="flex items-center justify-between mb-3">
 
                             <div>
+
                                 <p class="text-lg font-bold text-gray-800">
                                     ☀️ กลางวัน
                                 </p>
@@ -281,6 +259,7 @@
                                 <p class="text-sm text-gray-500">
                                     เวลากินยาช่วงกลางวัน
                                 </p>
+
                             </div>
 
                             <span
@@ -308,6 +287,7 @@
                         <div class="flex items-center justify-between mb-3">
 
                             <div>
+
                                 <p class="text-lg font-bold text-gray-800">
                                     🌇 เย็น
                                 </p>
@@ -315,6 +295,7 @@
                                 <p class="text-sm text-gray-500">
                                     เวลากินยาช่วงเย็น
                                 </p>
+
                             </div>
 
                             <span
@@ -342,6 +323,7 @@
                         <div class="flex items-center justify-between mb-3">
 
                             <div>
+
                                 <p class="text-lg font-bold text-gray-800">
                                     🌙 ก่อนนอน
                                 </p>
@@ -349,6 +331,7 @@
                                 <p class="text-sm text-gray-500">
                                     เวลากินยาก่อนนอน
                                 </p>
+
                             </div>
 
                             <span
@@ -374,10 +357,7 @@
             </div>
 
 
-            <!-- ======================================== -->
             <!-- Interval Mode -->
-            <!-- ======================================== -->
-
             <div
                 id="intervalMode"
                 class="hidden"
@@ -425,20 +405,14 @@
             </div>
 
 
-            <!-- ======================================== -->
             <!-- Save Status -->
-            <!-- ======================================== -->
-
             <div
                 id="saveStatus"
                 class="hidden mt-5 rounded-xl p-4 text-sm font-semibold"
             ></div>
 
 
-            <!-- ======================================== -->
             <!-- Save Button -->
-            <!-- ======================================== -->
-
             <div class="mt-6">
 
                 <button
@@ -454,10 +428,7 @@
         </section>
 
 
-        <!-- ======================================== -->
         <!-- Current Device -->
-        <!-- ======================================== -->
-
         <section class="card p-5 mt-5">
 
             <div class="flex items-center justify-between">
@@ -485,36 +456,8 @@
 
         </section>
 
-
-        <!-- ======================================== -->
-        <!-- Bottom Navigation -->
-        <!-- ======================================== -->
-
-        <div class="flex gap-3 mt-5 pb-3">
-
-            <a
-                href="/"
-                class="flex-1 text-center text-sm font-semibold text-purple-600 py-3 rounded-xl bg-white border border-purple-100"
-            >
-                ⏰ ตั้งเวลา
-            </a>
-
-            <a
-                href="/history.html"
-                class="flex-1 text-center text-sm font-semibold text-purple-600 py-3 rounded-xl bg-white border border-purple-100"
-            >
-                📋 ดูประวัติการกินยา
-            </a>
-
-        </div>
-
-
     </main>
 
-
-    <!-- ======================================== -->
-    <!-- JavaScript -->
-    <!-- ======================================== -->
 
     <script>
 
@@ -523,9 +466,9 @@
         let scheduleMode = "manual";
 
 
-        // ========================================
+        // ----------------------------------------
         // แสดงสถานะ
-        // ========================================
+        // ----------------------------------------
 
         function showStatus(message, type = "success") {
 
@@ -571,9 +514,9 @@
         }
 
 
-        // ========================================
+        // ----------------------------------------
         // เปลี่ยนโหมด
-        // ========================================
+        // ----------------------------------------
 
         function setScheduleMode(mode) {
 
@@ -617,9 +560,9 @@
         }
 
 
-        // ========================================
+        // ----------------------------------------
         // Preview interval
-        // ========================================
+        // ----------------------------------------
 
         function updateIntervalPreview() {
 
@@ -634,16 +577,14 @@
         }
 
 
-        // ========================================
+        // ----------------------------------------
         // แปลงเวลา HH:mm
-        // ========================================
+        // ----------------------------------------
 
         function parseTime(timeString) {
 
             const [h, m] =
-                timeString
-                    .split(":")
-                    .map(Number);
+                timeString.split(":").map(Number);
 
             return {
                 h,
@@ -653,26 +594,22 @@
         }
 
 
-        // ========================================
+        // ----------------------------------------
         // โหลดเวลาจาก API
-        // ========================================
+        // ----------------------------------------
 
         async function loadSavedSchedule() {
 
             const deviceStatus =
                 document.getElementById("deviceStatus");
 
-
             try {
 
-                const response =
-                    await fetch(
-                        `/api/pillbox/sync?deviceId=${DEVICE_ID}`
-                    );
+                const response = await fetch(
+                    `/api/pillbox/sync?deviceId=${DEVICE_ID}`
+                );
 
-
-                const data =
-                    await response.json();
+                const data = await response.json();
 
 
                 console.log(
@@ -697,24 +634,18 @@
                 const slots = data.slots;
 
 
-                // --------------------------------
                 // Morning
-                // --------------------------------
-
                 if (slots.morning) {
 
                     const h =
-                        String(
-                            slots.morning.h
-                        ).padStart(2, "0");
+                        String(slots.morning.h)
+                            .padStart(2, "0");
 
                     const m =
-                        String(
-                            slots.morning.m
-                        ).padStart(2, "0");
+                        String(slots.morning.m)
+                            .padStart(2, "0");
 
-                    const time =
-                        `${h}:${m}`;
+                    const time = `${h}:${m}`;
 
 
                     document.getElementById(
@@ -730,24 +661,18 @@
                 }
 
 
-                // --------------------------------
                 // Noon
-                // --------------------------------
-
                 if (slots.noon) {
 
                     const h =
-                        String(
-                            slots.noon.h
-                        ).padStart(2, "0");
+                        String(slots.noon.h)
+                            .padStart(2, "0");
 
                     const m =
-                        String(
-                            slots.noon.m
-                        ).padStart(2, "0");
+                        String(slots.noon.m)
+                            .padStart(2, "0");
 
-                    const time =
-                        `${h}:${m}`;
+                    const time = `${h}:${m}`;
 
 
                     document.getElementById(
@@ -763,24 +688,18 @@
                 }
 
 
-                // --------------------------------
                 // Evening
-                // --------------------------------
-
                 if (slots.evening) {
 
                     const h =
-                        String(
-                            slots.evening.h
-                        ).padStart(2, "0");
+                        String(slots.evening.h)
+                            .padStart(2, "0");
 
                     const m =
-                        String(
-                            slots.evening.m
-                        ).padStart(2, "0");
+                        String(slots.evening.m)
+                            .padStart(2, "0");
 
-                    const time =
-                        `${h}:${m}`;
+                    const time = `${h}:${m}`;
 
 
                     document.getElementById(
@@ -796,24 +715,18 @@
                 }
 
 
-                // --------------------------------
                 // Bedtime
-                // --------------------------------
-
                 if (slots.bedtime) {
 
                     const h =
-                        String(
-                            slots.bedtime.h
-                        ).padStart(2, "0");
+                        String(slots.bedtime.h)
+                            .padStart(2, "0");
 
                     const m =
-                        String(
-                            slots.bedtime.m
-                        ).padStart(2, "0");
+                        String(slots.bedtime.m)
+                            .padStart(2, "0");
 
-                    const time =
-                        `${h}:${m}`;
+                    const time = `${h}:${m}`;
 
 
                     document.getElementById(
@@ -829,13 +742,8 @@
                 }
 
 
-                // --------------------------------
-                // Device status
-                // --------------------------------
-
                 deviceStatus.textContent =
                     "● เชื่อมต่อแล้ว";
-
 
                 deviceStatus.className =
                     "text-sm text-green-600 font-semibold";
@@ -852,7 +760,6 @@
                 deviceStatus.textContent =
                     "● โหลดข้อมูลไม่สำเร็จ";
 
-
                 deviceStatus.className =
                     "text-sm text-red-500 font-semibold";
 
@@ -867,9 +774,9 @@
         }
 
 
-        // ========================================
+        // ----------------------------------------
         // ตรวจสอบเวลา
-        // ========================================
+        // ----------------------------------------
 
         function validateManualSchedule() {
 
@@ -907,7 +814,6 @@
                 );
 
                 return false;
-
             }
 
 
@@ -916,9 +822,9 @@
         }
 
 
-        // ========================================
+        // ----------------------------------------
         // บันทึกเวลาแบบกำหนดเอง
-        // ========================================
+        // ----------------------------------------
 
         async function saveManualSchedule() {
 
@@ -1010,21 +916,21 @@
 
             try {
 
-                const response =
-                    await fetch(
-                        "/api/web/update-slots",
-                        {
-                            method: "POST",
+                const response = await fetch(
+                    "/api/web/update-slots",
+                    {
 
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
+                        method: "POST",
 
-                            body:
-                                JSON.stringify(data)
-                        }
-                    );
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify(data)
+
+                    }
+                );
 
 
                 const result =
@@ -1056,7 +962,6 @@
                 );
 
 
-                // โหลดข้อมูลจากฐานข้อมูลกลับมาอีกครั้ง
                 await loadSavedSchedule();
 
 
@@ -1074,7 +979,6 @@
                     "error"
                 );
 
-
             } finally {
 
                 saveButton.disabled = false;
@@ -1087,9 +991,9 @@
         }
 
 
-        // ========================================
+        // ----------------------------------------
         // บันทึกตาราง
-        // ========================================
+        // ----------------------------------------
 
         async function saveSchedule() {
 
@@ -1137,7 +1041,6 @@
                 หลังจากระบบเวลาหลักทำงานสมบูรณ์
             */
 
-
             showStatus(
                 `ตั้งค่าแจ้งเตือนทุก ${interval} ชั่วโมงแล้ว`,
                 "success"
@@ -1146,9 +1049,9 @@
         }
 
 
-        // ========================================
+        // ----------------------------------------
         // Events
-        // ========================================
+        // ----------------------------------------
 
         document
             .getElementById("manualModeButton")
@@ -1182,9 +1085,9 @@
             );
 
 
-        // ========================================
+        // ----------------------------------------
         // เริ่มต้นหน้าเว็บ
-        // ========================================
+        // ----------------------------------------
 
         setScheduleMode("manual");
 

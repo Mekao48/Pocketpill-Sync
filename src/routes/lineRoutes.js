@@ -6,6 +6,52 @@ const router = express.Router();
 
 
 // ========================================
+// ตรวจสอบ LINE Webhook Signature
+// ========================================
+function verifyLineSignature(req) {
+
+    const signature =
+        req.headers["x-line-signature"];
+
+    if (!signature) {
+        return false;
+    }
+
+    const channelSecret =
+        process.env.LINE_CHANNEL_SECRET;
+
+    if (!channelSecret) {
+        console.error(
+            "❌ LINE_CHANNEL_SECRET not found"
+        );
+
+        return false;
+    }
+
+    if (!req.rawBody) {
+        console.error(
+            "❌ Raw request body not found"
+        );
+
+        return false;
+    }
+
+    const hash = crypto
+        .createHmac(
+            "SHA256",
+            channelSecret
+        )
+        .update(req.rawBody)
+        .digest("base64");
+
+    return crypto.timingSafeEqual(
+        Buffer.from(hash),
+        Buffer.from(signature)
+    );
+}
+
+
+// ========================================
 // POST /api/line/webhook
 // LINE Messaging API Webhook
 // ========================================
@@ -13,24 +59,59 @@ router.post("/webhook", (req, res) => {
 
     try {
 
-        const events = req.body.events || [];
+        // ------------------------------------
+        // ตรวจสอบว่าเป็น Webhook จาก LINE จริง
+        // ------------------------------------
+        if (!verifyLineSignature(req)) {
 
-        console.log("========================================");
-        console.log("LINE Webhook received");
-        console.log("Events:", events.length);
-        console.log("========================================");
+            console.log(
+                "❌ Invalid LINE Webhook Signature"
+            );
+
+            return res.sendStatus(401);
+        }
+
+
+        console.log(
+            "✅ LINE Webhook Signature verified"
+        );
+
+
+        const events =
+            req.body.events || [];
+
+
+        console.log(
+            "========================================"
+        );
+
+        console.log(
+            "LINE Webhook received"
+        );
+
+        console.log(
+            "Events:",
+            events.length
+        );
+
+        console.log(
+            "========================================"
+        );
 
 
         // LINE อาจส่ง events เป็น []
-        // เพื่อทดสอบการเชื่อมต่อ
         if (events.length === 0) {
+
             return res.sendStatus(200);
         }
 
 
         for (const event of events) {
 
-            console.log("LINE Event Type:", event.type);
+            console.log(
+                "LINE Event Type:",
+                event.type
+            );
 
 
             // ------------------------------------
@@ -41,6 +122,7 @@ router.post("/webhook", (req, res) => {
 
 
             if (!lineUserId) {
+
                 console.log(
                     "⚠️ No LINE User ID in this event"
                 );
@@ -56,28 +138,24 @@ router.post("/webhook", (req, res) => {
 
 
             // ------------------------------------
-            // ถ้าเป็น follow event
-            // ผู้ใช้เพิ่ม OA เป็นเพื่อน
+            // Follow Event
             // ------------------------------------
             if (event.type === "follow") {
 
                 console.log(
                     "✅ User followed LINE Official Account"
                 );
-
             }
 
 
             // ------------------------------------
-            // ถ้าเป็น message event
-            // ผู้ใช้ส่งข้อความหา OA
+            // Message Event
             // ------------------------------------
             if (event.type === "message") {
 
                 console.log(
                     "💬 User sent a message"
                 );
-
             }
 
 
