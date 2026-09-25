@@ -1,5 +1,5 @@
 const cron = require("node-cron");
-const db = require("../database/database");
+const database = require("./services/database");
 const { sendLinePush } = require("./services/lineService");
 
 
@@ -17,30 +17,18 @@ const slotConfig = [
     {
         name: "morning",
         index: 0,
-        hourField: "morning_h",
-        minuteField: "morning_m",
-        enabledField: "morning_enabled"
     },
     {
         name: "noon",
         index: 1,
-        hourField: "noon_h",
-        minuteField: "noon_m",
-        enabledField: "noon_enabled"
     },
     {
         name: "evening",
         index: 2,
-        hourField: "evening_h",
-        minuteField: "evening_m",
-        enabledField: "evening_enabled"
     },
     {
         name: "bedtime",
         index: 3,
-        hourField: "bedtime_h",
-        minuteField: "bedtime_m",
-        enabledField: "bedtime_enabled"
     }
 ];
 
@@ -67,10 +55,7 @@ async function checkMedicationReminders() {
 
 
     // ดึงข้อมูลกล่องยาทั้งหมด
-    const devices = db.prepare(`
-        SELECT *
-        FROM pillbox_devices
-    `).all();
+    const devices = await database.getDevices();
 
 
     // ตรวจสอบแต่ละกล่อง
@@ -79,12 +64,13 @@ async function checkMedicationReminders() {
         // ตรวจสอบทั้ง 4 ช่วงเวลา
         for (const slot of slotConfig) {
 
-            if (!device[slot.enabledField]) {
+            const schedule = device.slots[slot.name];
+            if (!schedule || !schedule.enabled) {
                 continue;
             }
 
-            const hour = Number(device[slot.hourField]);
-            const minute = Number(device[slot.minuteField]);
+            const hour = Number(schedule.h);
+            const minute = Number(schedule.m);
 
 
             // เวลาที่ควรกินยาในวันนี้
@@ -121,20 +107,13 @@ async function checkMedicationReminders() {
             |--------------------------------------------------------------------------
             */
 
-            const takenToday = db.prepare(`
-                SELECT id
-                FROM medication_logs
-                WHERE device_id = ?
-                AND slot_name = ?
-                AND date(
-                    taken_time,
-                    'unixepoch',
-                    'localtime'
-                ) = date('now', 'localtime')
-                LIMIT 1
-            `).get(
+            const startOfToday = Math.floor(new Date(year, month, date).getTime() / 1000);
+            const startOfTomorrow = Math.floor(new Date(year, month, date + 1).getTime() / 1000);
+            const takenToday = await database.getLogForSlot(
                 device.device_id,
-                slot.name
+                slot.name,
+                startOfToday,
+                startOfTomorrow
             );
 
 
@@ -154,14 +133,7 @@ async function checkMedicationReminders() {
             |--------------------------------------------------------------------------
             */
 
-            const reminderAlreadySent = db.prepare(`
-                SELECT id
-                FROM medication_reminders
-                WHERE device_id = ?
-                AND slot_name = ?
-                AND reminder_date = ?
-                LIMIT 1
-            `).get(
+            const reminderAlreadySent = await database.hasReminder(
                 device.device_id,
                 slot.name,
                 todayString
@@ -217,20 +189,12 @@ async function checkMedicationReminders() {
 
                 try {
 
-                    db.prepare(`
-                        INSERT OR IGNORE INTO medication_reminders (
-                            device_id,
-                            slot_name,
-                            reminder_date,
-                            sent_at
-                        )
-                        VALUES (?, ?, ?, ?)
-                    `).run(
-                        device.device_id,
-                        slot.name,
-                        todayString,
-                        Math.floor(Date.now() / 1000)
-                    );
+                    await database.insertReminder({
+                        device_id: device.device_id,
+                        slot_name: slot.name,
+                        reminder_date: todayString,
+                        sent_at: Math.floor(Date.now() / 1000)
+                    });
 
 
                     console.log(
@@ -264,20 +228,21 @@ async function checkMedicationReminders() {
 |--------------------------------------------------------------------------
 */
 
-checkMedicationReminders();
+if (process.env.VERCEL !== "1") {
+    checkMedicationReminders().catch(error => {
+        console.error("Medication reminder check failed:", error);
+    });
 
+    cron.schedule("*/5 * * * *", async () => {
+        try {
+            await checkMedicationReminders();
+        } catch (error) {
+            console.error("Medication reminder check failed:", error);
+        }
+    });
+}
 
-/*
-|--------------------------------------------------------------------------
-| ตรวจสอบทุก 5 นาที
-|--------------------------------------------------------------------------
-*/
-
-cron.schedule("*/5 * * * *", async () => {
-
-    await checkMedicationReminders();
-
-});
+module.exports = { checkMedicationReminders };
 
 
 console.log("Medication reminder cron started");

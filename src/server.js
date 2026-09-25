@@ -1,16 +1,13 @@
 require("dotenv").config();
 
 const express = require("express");
-const db = require("../database/database");
-
-require("./cron");
+const path = require("path");
+const { checkMedicationReminders } = require("./cron");
 
 const pillboxRoutes = require("./routes/pillboxRoutes");
-const webRoutes = require("./routes/webRoutes");
 const lineRoutes = require("./routes/lineRoutes");
-const historyRoutes = require("./routes/historyRoutes");
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
@@ -31,7 +28,7 @@ app.use(express.json({
     }
 }));
 
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "../public")));
 
 // หน้าแรก
 app.get("/", (req, res) => {
@@ -46,19 +43,43 @@ app.get("/", (req, res) => {
 app.use("/api/pillbox", pillboxRoutes);
 
 
-// Routes สำหรับเว็บไซต์
-app.use("/api/web", webRoutes);
-
-
 // Routes สำหรับ LINE
 app.use("/api/line", lineRoutes);
 
 
-app.use("/api/history", historyRoutes);
+app.get("/api/cron/reminders", async (req, res) => {
+    const expectedToken = process.env.CRON_SECRET;
 
-// เริ่ม Server
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(
-        `Pocketpill-Sync API running at http://localhost:${PORT}`
-    );
+    if (!expectedToken || req.headers.authorization !== `Bearer ${expectedToken}`) {
+        return res.sendStatus(401);
+    }
+
+    try {
+        await checkMedicationReminders();
+        res.json({ status: "success" });
+    } catch (error) {
+        console.error("Medication reminder check failed:", error);
+        res.status(500).json({ status: "error", message: "Reminder check failed" });
+    }
 });
+
+app.use((error, req, res, next) => {
+    console.error("API request failed:", error);
+
+    if (res.headersSent) {
+        return next(error);
+    }
+
+    res.status(error.status || 500).json({
+        status: "error",
+        message: error.status && error.status < 500 ? error.message : "Internal server error"
+    });
+});
+
+if (require.main === module) {
+    app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Pocketpill-Sync API running at http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;

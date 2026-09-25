@@ -1,6 +1,6 @@
 const express = require("express");
 const crypto = require("crypto");
-const db = require("../../database/database");
+const database = require("../services/database");
 
 const router = express.Router();
 
@@ -55,7 +55,7 @@ function verifyLineSignature(req) {
 // POST /api/line/webhook
 // LINE Messaging API Webhook
 // ========================================
-router.post("/webhook", (req, res) => {
+router.post("/webhook", async (req, res) => {
 
     try {
 
@@ -162,15 +162,7 @@ router.post("/webhook", (req, res) => {
             // ------------------------------------
             // บันทึก LINE User ID ให้ BOX_001
             // ------------------------------------
-            db.prepare(`
-                UPDATE pillbox_devices
-                SET line_user_id = ?,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE device_id = ?
-            `).run(
-                lineUserId,
-                "BOX_001"
-            );
+            await database.updateLineUser("BOX_001", lineUserId);
 
 
             console.log(

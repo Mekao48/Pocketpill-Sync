@@ -1,45 +1,29 @@
 const express = require("express");
-const db = require("../../database/database");
+const database = require("../services/database");
 const { sendLinePush } = require("../services/lineService");
 
 const router = express.Router();
-
-const slotColumns = {
-    morning: { hour: "morning_h", minute: "morning_m", enabled: "morning_enabled" },
-    noon: { hour: "noon_h", minute: "noon_m", enabled: "noon_enabled" },
-    evening: { hour: "evening_h", minute: "evening_m", enabled: "evening_enabled" },
-    bedtime: { hour: "bedtime_h", minute: "bedtime_m", enabled: "bedtime_enabled" }
-};
 
 function isValidDeviceId(deviceId) {
     return typeof deviceId === "string" && deviceId.trim().length > 0 && deviceId.length <= 100;
 }
 
-function getOrCreateDevice(deviceId) {
-    db.prepare("INSERT OR IGNORE INTO pillbox_devices (device_id) VALUES (?)").run(deviceId);
-    return db.prepare("SELECT * FROM pillbox_devices WHERE device_id = ?").get(deviceId);
-}
-
-function serializeSlots(device) {
-    return Object.fromEntries(Object.entries(slotColumns).map(([name, columns]) => [name, {
-        h: device[columns.hour],
-        m: device[columns.minute],
-        enabled: Boolean(device[columns.enabled])
-    }]));
+function serializeSlots(settings) {
+    return settings.slots;
 }
 
 
 // ========================================
 // Dashboard schedule settings
 // ========================================
-router.get("/settings", (req, res) => {
+router.get("/settings", async (req, res) => {
     const { deviceId } = req.query;
 
     if (!isValidDeviceId(deviceId)) {
         return res.status(400).json({ status: "error", message: "deviceId is required" });
     }
 
-    const device = getOrCreateDevice(deviceId);
+    const device = await database.getOrCreateSettings(deviceId);
     res.json({
         status: "success",
         deviceId,
@@ -48,7 +32,7 @@ router.get("/settings", (req, res) => {
     });
 });
 
-router.put("/settings", (req, res) => {
+router.put("/settings", async (req, res) => {
     const { deviceId, slots } = req.body || {};
 
     if (!isValidDeviceId(deviceId)) {
@@ -59,7 +43,7 @@ router.put("/settings", (req, res) => {
         return res.status(400).json({ status: "error", message: "slots must be an object" });
     }
 
-    for (const name of Object.keys(slotColumns)) {
+    for (const name of ["morning", "noon", "evening", "bedtime"]) {
         const slot = slots[name];
         if (!slot || !Number.isInteger(slot.h) || slot.h < 0 || slot.h > 23 ||
             !Number.isInteger(slot.m) || slot.m < 0 || slot.m > 59 ||
@@ -71,39 +55,7 @@ router.put("/settings", (req, res) => {
         }
     }
 
-    db.prepare(`
-        INSERT INTO pillbox_devices (
-            device_id,
-            morning_h, morning_m, morning_enabled,
-            noon_h, noon_m, noon_enabled,
-            evening_h, evening_m, evening_enabled,
-            bedtime_h, bedtime_m, bedtime_enabled,
-            updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT(device_id) DO UPDATE SET
-            morning_h = excluded.morning_h,
-            morning_m = excluded.morning_m,
-            morning_enabled = excluded.morning_enabled,
-            noon_h = excluded.noon_h,
-            noon_m = excluded.noon_m,
-            noon_enabled = excluded.noon_enabled,
-            evening_h = excluded.evening_h,
-            evening_m = excluded.evening_m,
-            evening_enabled = excluded.evening_enabled,
-            bedtime_h = excluded.bedtime_h,
-            bedtime_m = excluded.bedtime_m,
-            bedtime_enabled = excluded.bedtime_enabled,
-            updated_at = CURRENT_TIMESTAMP
-    `).run(
-        deviceId,
-        ...Object.keys(slotColumns).flatMap(name => [
-            slots[name].h,
-            slots[name].m,
-            slots[name].enabled ? 1 : 0
-        ])
-    );
-
-    const saved = db.prepare("SELECT * FROM pillbox_devices WHERE device_id = ?").get(deviceId);
+    const saved = await database.saveSettings(deviceId, slots);
     res.json({ status: "success", deviceId, slots: serializeSlots(saved) });
 });
 
@@ -112,7 +64,7 @@ router.put("/settings", (req, res) => {
 // GET /api/pillbox/sync
 // ESP32 ใช้เรียกเพื่อดึงเวลาตั้งยา
 // ========================================
-router.get("/sync", (req, res) => {
+router.get("/sync", async (req, res) => {
 
     const { deviceId } = req.query;
 
@@ -123,7 +75,7 @@ router.get("/sync", (req, res) => {
         });
     }
 
-    const device = getOrCreateDevice(deviceId);
+    const device = await database.getOrCreateSettings(deviceId);
 
     res.json({
         status: "success",
@@ -238,11 +190,10 @@ router.post("/log", async (req, res) => {
         });
     }
 
-    if (next_alert !== undefined && next_alert !== null &&
-        (!Number.isInteger(next_alert) || next_alert < 0)) {
+    if (!Number.isInteger(next_alert) || next_alert < 0) {
         return res.status(400).json({
             status: "error",
-            message: "next_alert must be a Unix timestamp or null"
+            message: "next_alert must be a Unix timestamp"
         });
     }
 
@@ -250,11 +201,7 @@ router.post("/log", async (req, res) => {
     // ------------------------------------
     // ตรวจสอบว่าเครื่องมีอยู่จริง
     // ------------------------------------
-    const device = db.prepare(`
-        SELECT *
-        FROM pillbox_devices
-        WHERE device_id = ?
-    `).get(deviceId);
+    const device = await database.getSettings(deviceId);
 
     if (!device) {
         return res.status(404).json({
@@ -267,28 +214,16 @@ router.post("/log", async (req, res) => {
     // ------------------------------------
     // บันทึกประวัติการกินยา
     // ------------------------------------
-    const result = db.prepare(`
-        INSERT INTO medication_logs (
-            device_id,
-            slot_name,
-            slot_index,
-            taken_time,
-            delay_sec,
-            is_delayed,
-            is_skipped,
-            next_alert
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-        deviceId,
+    const result = await database.insertLog({
+        device_id: deviceId,
         slot_name,
         slot_index,
         taken_time,
         delay_sec,
-        is_delayed ? 1 : 0,
-        is_skipped ? 1 : 0,
-        next_alert || null
-    );
+        is_delayed,
+        is_skipped,
+        next_alert
+    });
 
 
     console.log(
@@ -381,7 +316,7 @@ router.post("/log", async (req, res) => {
 // GET /api/pillbox/history
 // ดูประวัติการกินยา
 // ========================================
-router.get("/history", (req, res) => {
+router.get("/history", async (req, res) => {
 
     const { deviceId, limit } = req.query;
 
@@ -410,23 +345,7 @@ router.get("/history", (req, res) => {
 
 
     // ดึงประวัติจากฐานข้อมูล
-    const logs = db.prepare(`
-        SELECT
-            id,
-            device_id,
-            slot_name,
-            slot_index,
-            taken_time,
-            delay_sec,
-            is_delayed,
-            is_skipped,
-            next_alert,
-            created_at
-        FROM medication_logs
-        WHERE device_id = ?
-        ORDER BY taken_time DESC
-        LIMIT ?
-    `).all(deviceId, historyLimit);
+    const logs = await database.getLogs(deviceId, historyLimit);
 
 
     // แปลงข้อมูลให้อ่านง่าย
@@ -440,12 +359,8 @@ router.get("/history", (req, res) => {
         delay_min: Math.floor(
             log.delay_sec / 60
         ),
-        is_delayed: Boolean(
-            log.is_delayed
-        ),
-        is_skipped: Boolean(
-            log.is_skipped
-        ),
+        is_delayed: log.is_delayed,
+        is_skipped: log.is_skipped,
         next_alert: log.next_alert,
         created_at: log.created_at
     }));
@@ -464,7 +379,7 @@ router.get("/history", (req, res) => {
 // GET /api/pillbox/status
 // ตรวจสถานะการกินยา
 // ========================================
-router.get("/status", (req, res) => {
+router.get("/status", async (req, res) => {
 
     const { deviceId } = req.query;
 
@@ -479,11 +394,7 @@ router.get("/status", (req, res) => {
     // ------------------------------------
     // หาอุปกรณ์
     // ------------------------------------
-    const device = db.prepare(`
-        SELECT *
-        FROM pillbox_devices
-        WHERE device_id = ?
-    `).get(deviceId);
+    const device = await database.getSettings(deviceId);
 
     if (!device) {
         return res.status(404).json({
@@ -516,32 +427,13 @@ router.get("/status", (req, res) => {
     // ------------------------------------
     // ตารางเวลายา
     // ------------------------------------
-    const slots = [
-        {
-            slot_name: "morning",
-            slot_index: 0,
-            hour: device.morning_h,
-            minute: device.morning_m
-        },
-        {
-            slot_name: "noon",
-            slot_index: 1,
-            hour: device.noon_h,
-            minute: device.noon_m
-        },
-        {
-            slot_name: "evening",
-            slot_index: 2,
-            hour: device.evening_h,
-            minute: device.evening_m
-        },
-        {
-            slot_name: "bedtime",
-            slot_index: 3,
-            hour: device.bedtime_h,
-            minute: device.bedtime_m
-        }
-    ];
+    const slots = ["morning", "noon", "evening", "bedtime"].map((name, index) => ({
+        slot_name: name,
+        slot_index: index,
+        hour: device.slots[name].h,
+        minute: device.slots[name].m,
+        enabled: device.slots[name].enabled
+    }));
 
 
     // ------------------------------------
@@ -578,7 +470,22 @@ router.get("/status", (req, res) => {
     // ------------------------------------
     // สร้างข้อมูลแต่ละช่วงเวลา
     // ------------------------------------
-    const result = slots.map(slot => {
+    const result = await Promise.all(slots.map(async slot => {
+
+        if (!slot.enabled) {
+            return {
+                slot_name: slot.slot_name,
+                slot_index: slot.slot_index,
+                scheduled_time: `${String(slot.hour).padStart(2, "0")}:${String(slot.minute).padStart(2, "0")}`,
+                current_time: `${String(currentHour).padStart(2, "0")}:${String(currentMinute).padStart(2, "0")}`,
+                enabled: false,
+                taken: false,
+                delay_sec: 0,
+                delay_min: 0,
+                is_delayed: false,
+                taken_time: null
+            };
+        }
 
         const scheduledTotalSeconds =
             slot.hour * 3600 +
@@ -589,16 +496,7 @@ router.get("/status", (req, res) => {
         // ตรวจว่ารอบนี้กินยาแล้วหรือยัง
         // เฉพาะข้อมูลของวันนี้
         // ========================================
-        const log = db.prepare(`
-            SELECT *
-            FROM medication_logs
-            WHERE device_id = ?
-              AND slot_name = ?
-              AND taken_time >= ?
-              AND taken_time < ?
-            ORDER BY taken_time DESC
-            LIMIT 1
-        `).get(
+                const log = await database.getLogForSlot(
             deviceId,
             slot.slot_name,
             todayStartUnix,
@@ -731,7 +629,7 @@ router.get("/status", (req, res) => {
             taken_time:
                 null
         };
-    });
+    }));
 
 
     // ------------------------------------
