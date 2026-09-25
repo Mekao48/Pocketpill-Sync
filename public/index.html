@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pocketpill-Sync</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f7ff;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(80, 60, 120, 0.08);
+        }
+
+        .time-input {
+            border: 2px solid #e5e1f5;
+            border-radius: 16px;
+            padding: 12px 14px;
+            width: 100%;
+            font-size: 18px;
+            outline: none;
+            transition: 0.2s;
+            background: white;
+        }
+
+        .time-input:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .mode-button {
+            border: 2px solid #e5e1f5;
+            background: white;
+            color: #6b5b95;
+            border-radius: 14px;
+            padding: 12px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .mode-button.active {
+            background: #7c3aed;
+            color: white;
+            border-color: #7c3aed;
+        }
+
+        .slot-card {
+            border-radius: 20px;
+            padding: 18px;
+            background: #faf9ff;
+            border: 1px solid #eeeafe;
+        }
+
+        .save-button {
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            color: white;
+            border-radius: 16px;
+            padding: 15px;
+            width: 100%;
+            font-weight: bold;
+            font-size: 17px;
+            transition: 0.2s;
+        }
+
+        .save-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+        }
+
+        .save-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .nav-button {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 10px;
+            border-radius: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: 0.2s;
+            border: 2px solid #e5e1f5;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .nav-button.active {
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            color: white;
+            border-color: #7c3aed;
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.18);
+        }
+
+        .nav-button:not(.active) {
+            background: white;
+            color: #6b5b95;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ======================================== -->
+    <!-- Header -->
+    <!-- ======================================== -->
+
+    <header class="bg-white border-b border-purple-100">
+        <div class="max-w-3xl mx-auto px-5 py-5">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-sm text-purple-500 font-semibold">
+                        ระบบกล่องยาอัจฉริยะ
+                    </p>
+
+                    <h1 class="text-2xl font-bold text-gray-800">
+                        Pocketpill-Sync
+                    </h1>
+                </div>
+
+                <div class="text-3xl">
+                    💊
+                </div>
+
+            </div>
+
+        </div>
+    </header>
+
+
+    <!-- ======================================== -->
+    <!-- Main -->
+    <!-- ======================================== -->
+
+    <main class="max-w-3xl mx-auto px-5 py-7">
+
+
+        <!-- ======================================== -->
+        <!-- Navigation -->
+        <!-- ======================================== -->
+
+        <div class="flex gap-3 mb-5">
+
+            <a
+                href="/"
+                class="nav-button active"
+            >
+                ⏰
+                <span>ตั้งเวลา</span>
+            </a>
+
+            <a
+                href="/history.html"
+                class="nav-button"
+            >
+                📋
+                <span>ประวัติ</span>
+            </a>
+
+        </div>
+
+
+        <!-- ======================================== -->
+        <!-- Schedule Card -->
+        <!-- ======================================== -->
+
+        <section class="card p-6">
+
+            <div class="mb-6">
+
+                <p class="text-sm text-purple-500 font-semibold mb-1">
+                    ตารางการกินยา
+                </p>
+
+                <h2 class="text-2xl font-bold text-gray-800">
+                    ตั้งเวลาแจ้งเตือน
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-2">
+                    กำหนดเวลาที่ต้องการให้กล่องยาแจ้งเตือน
+                </p>
+
+            </div>
+
+
+            <!-- ======================================== -->
+            <!-- Schedule Mode -->
+            <!-- ======================================== -->
+
+            <div class="grid grid-cols-2 gap-3 mb-6">
+
+                <button
+                    id="manualModeButton"
+                    class="mode-button"
+                    type="button"
+                >
+                    ⏰ ตั้งเวลาเอง
+                </button>
+
+                <button
+                    id="intervalModeButton"
+                    class="mode-button"
+                    type="button"
+                >
+                    🔄 ทุก X ชั่วโมง
+                </button>
+
+            </div>
+
+
+            <!-- ======================================== -->
+            <!-- Manual Mode -->
+            <!-- ======================================== -->
+
+            <div id="manualMode">
+
+                <div class="space-y-4">
+
+
+                    <!-- Morning -->
+                    <div class="slot-card">
+
+                        <div class="flex items-center justify-between mb-3">
+
+                            <div>
+                                <p class="text-lg font-bold text-gray-800">
+                                    🌅 เช้า
+                                </p>
+
+                                <p class="text-sm text-gray-500">
+                                    เวลากินยาช่วงเช้า
+                                </p>
+                            </div>
+
+                            <span
+                                id="morningSaved"
+                                class="text-xs text-gray-400"
+                            >
+                                ยังไม่ได้โหลด
+                            </span>
+
+                        </div>
+
+                        <input
+                            id="morningTime"
+                            class="time-input"
+                            type="time"
+                            value="08:00"
+                        >
+
+                    </div>
+
+
+                    <!-- Noon -->
+                    <div class="slot-card">
+
+                        <div class="flex items-center justify-between mb-3">
+
+                            <div>
+                                <p class="text-lg font-bold text-gray-800">
+                                    ☀️ กลางวัน
+                                </p>
+
+                                <p class="text-sm text-gray-500">
+                                    เวลากินยาช่วงกลางวัน
+                                </p>
+                            </div>
+
+                            <span
+                                id="noonSaved"
+                                class="text-xs text-gray-400"
+                            >
+                                ยังไม่ได้โหลด
+                            </span>
+
+                        </div>
+
+                        <input
+                            id="noonTime"
+                            class="time-input"
+                            type="time"
+                            value="12:00"
+                        >
+
+                    </div>
+
+
+                    <!-- Evening -->
+                    <div class="slot-card">
+
+                        <div class="flex items-center justify-between mb-3">
+
+                            <div>
+                                <p class="text-lg font-bold text-gray-800">
+                                    🌇 เย็น
+                                </p>
+
+                                <p class="text-sm text-gray-500">
+                                    เวลากินยาช่วงเย็น
+                                </p>
+                            </div>
+
+                            <span
+                                id="eveningSaved"
+                                class="text-xs text-gray-400"
+                            >
+                                ยังไม่ได้โหลด
+                            </span>
+
+                        </div>
+
+                        <input
+                            id="eveningTime"
+                            class="time-input"
+                            type="time"
+                            value="18:00"
+                        >
+
+                    </div>
+
+
+                    <!-- Bedtime -->
+                    <div class="slot-card">
+
+                        <div class="flex items-center justify-between mb-3">
+
+                            <div>
+                                <p class="text-lg font-bold text-gray-800">
+                                    🌙 ก่อนนอน
+                                </p>
+
+                                <p class="text-sm text-gray-500">
+                                    เวลากินยาก่อนนอน
+                                </p>
+                            </div>
+
+                            <span
+                                id="bedtimeSaved"
+                                class="text-xs text-gray-400"
+                            >
+                                ยังไม่ได้โหลด
+                            </span>
+
+                        </div>
+
+                        <input
+                            id="bedtimeTime"
+                            class="time-input"
+                            type="time"
+                            value="21:00"
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ======================================== -->
+            <!-- Interval Mode -->
+            <!-- ======================================== -->
+
+            <div
+                id="intervalMode"
+                class="hidden"
+            >
+
+                <div class="slot-card">
+
+                    <div class="mb-4">
+
+                        <p class="text-lg font-bold text-gray-800">
+                            🔄 ตั้งเวลาแบบช่วงห่าง
+                        </p>
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            ระบบจะแจ้งเตือนทุก X ชั่วโมง
+                        </p>
+
+                    </div>
+
+                    <label
+                        for="intervalHours"
+                        class="block text-sm font-semibold text-gray-700 mb-2"
+                    >
+                        จำนวนชั่วโมง
+                    </label>
+
+                    <input
+                        id="intervalHours"
+                        class="time-input"
+                        type="number"
+                        min="1"
+                        max="24"
+                        value="4"
+                    >
+
+                    <p
+                        id="intervalPreview"
+                        class="text-sm text-purple-600 font-semibold mt-3"
+                    >
+                        ทุก 4 ชั่วโมง
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ======================================== -->
+            <!-- Save Status -->
+            <!-- ======================================== -->
+
+            <div
+                id="saveStatus"
+                class="hidden mt-5 rounded-xl p-4 text-sm font-semibold"
+            ></div>
+
+
+            <!-- ======================================== -->
+            <!-- Save Button -->
+            <!-- ======================================== -->
+
+            <div class="mt-6">
+
+                <button
+                    id="saveButton"
+                    class="save-button"
+                    type="button"
+                >
+                    💾 บันทึกเวลาการกินยา
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ======================================== -->
+        <!-- Current Device -->
+        <!-- ======================================== -->
+
+        <section class="card p-5 mt-5">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-xs text-gray-400">
+                        อุปกรณ์
+                    </p>
+
+                    <p class="font-bold text-gray-800">
+                        BOX_001
+                    </p>
+
+                </div>
+
+                <div
+                    id="deviceStatus"
+                    class="text-sm text-gray-400"
+                >
+                    กำลังโหลด...
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ======================================== -->
+        <!-- Bottom Navigation -->
+        <!-- ======================================== -->
+
+        <div class="flex gap-3 mt-5 pb-3">
+
+            <a
+                href="/"
+                class="flex-1 text-center text-sm font-semibold text-purple-600 py-3 rounded-xl bg-white border border-purple-100"
+            >
+                ⏰ ตั้งเวลา
+            </a>
+
+            <a
+                href="/history.html"
+                class="flex-1 text-center text-sm font-semibold text-purple-600 py-3 rounded-xl bg-white border border-purple-100"
+            >
+                📋 ดูประวัติการกินยา
+            </a>
+
+        </div>
+
+
+    </main>
+
+
+    <!-- ======================================== -->
+    <!-- JavaScript -->
+    <!-- ======================================== -->
+
+    <script>
+
+        const DEVICE_ID = "BOX_001";
+
+        let scheduleMode = "manual";
+
+
+        // ========================================
+        // แสดงสถานะ
+        // ========================================
+
+        function showStatus(message, type = "success") {
+
+            const status =
+                document.getElementById("saveStatus");
+
+            status.textContent = message;
+
+            status.classList.remove(
+                "hidden",
+                "bg-green-50",
+                "text-green-700",
+                "bg-red-50",
+                "text-red-700",
+                "bg-yellow-50",
+                "text-yellow-700"
+            );
+
+
+            if (type === "success") {
+
+                status.classList.add(
+                    "bg-green-50",
+                    "text-green-700"
+                );
+
+            } else if (type === "error") {
+
+                status.classList.add(
+                    "bg-red-50",
+                    "text-red-700"
+                );
+
+            } else {
+
+                status.classList.add(
+                    "bg-yellow-50",
+                    "text-yellow-700"
+                );
+
+            }
+
+        }
+
+
+        // ========================================
+        // เปลี่ยนโหมด
+        // ========================================
+
+        function setScheduleMode(mode) {
+
+            scheduleMode = mode;
+
+            const manualMode =
+                document.getElementById("manualMode");
+
+            const intervalMode =
+                document.getElementById("intervalMode");
+
+            const manualButton =
+                document.getElementById("manualModeButton");
+
+            const intervalButton =
+                document.getElementById("intervalModeButton");
+
+
+            if (mode === "manual") {
+
+                manualMode.classList.remove("hidden");
+
+                intervalMode.classList.add("hidden");
+
+                manualButton.classList.add("active");
+
+                intervalButton.classList.remove("active");
+
+            } else {
+
+                manualMode.classList.add("hidden");
+
+                intervalMode.classList.remove("hidden");
+
+                manualButton.classList.remove("active");
+
+                intervalButton.classList.add("active");
+
+            }
+
+        }
+
+
+        // ========================================
+        // Preview interval
+        // ========================================
+
+        function updateIntervalPreview() {
+
+            const hours =
+                document.getElementById("intervalHours").value;
+
+            document.getElementById(
+                "intervalPreview"
+            ).textContent =
+                `ทุก ${hours || 0} ชั่วโมง`;
+
+        }
+
+
+        // ========================================
+        // แปลงเวลา HH:mm
+        // ========================================
+
+        function parseTime(timeString) {
+
+            const [h, m] =
+                timeString
+                    .split(":")
+                    .map(Number);
+
+            return {
+                h,
+                m
+            };
+
+        }
+
+
+        // ========================================
+        // โหลดเวลาจาก API
+        // ========================================
+
+        async function loadSavedSchedule() {
+
+            const deviceStatus =
+                document.getElementById("deviceStatus");
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/api/pillbox/sync?deviceId=${DEVICE_ID}`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "Sync API:",
+                    data
+                );
+
+
+                if (
+                    !response.ok ||
+                    data.status !== "success"
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "ไม่สามารถโหลดข้อมูลได้"
+                    );
+
+                }
+
+
+                const slots = data.slots;
+
+
+                // --------------------------------
+                // Morning
+                // --------------------------------
+
+                if (slots.morning) {
+
+                    const h =
+                        String(
+                            slots.morning.h
+                        ).padStart(2, "0");
+
+                    const m =
+                        String(
+                            slots.morning.m
+                        ).padStart(2, "0");
+
+                    const time =
+                        `${h}:${m}`;
+
+
+                    document.getElementById(
+                        "morningTime"
+                    ).value = time;
+
+
+                    document.getElementById(
+                        "morningSaved"
+                    ).textContent =
+                        `บันทึกไว้ ${time} น.`;
+
+                }
+
+
+                // --------------------------------
+                // Noon
+                // --------------------------------
+
+                if (slots.noon) {
+
+                    const h =
+                        String(
+                            slots.noon.h
+                        ).padStart(2, "0");
+
+                    const m =
+                        String(
+                            slots.noon.m
+                        ).padStart(2, "0");
+
+                    const time =
+                        `${h}:${m}`;
+
+
+                    document.getElementById(
+                        "noonTime"
+                    ).value = time;
+
+
+                    document.getElementById(
+                        "noonSaved"
+                    ).textContent =
+                        `บันทึกไว้ ${time} น.`;
+
+                }
+
+
+                // --------------------------------
+                // Evening
+                // --------------------------------
+
+                if (slots.evening) {
+
+                    const h =
+                        String(
+                            slots.evening.h
+                        ).padStart(2, "0");
+
+                    const m =
+                        String(
+                            slots.evening.m
+                        ).padStart(2, "0");
+
+                    const time =
+                        `${h}:${m}`;
+
+
+                    document.getElementById(
+                        "eveningTime"
+                    ).value = time;
+
+
+                    document.getElementById(
+                        "eveningSaved"
+                    ).textContent =
+                        `บันทึกไว้ ${time} น.`;
+
+                }
+
+
+                // --------------------------------
+                // Bedtime
+                // --------------------------------
+
+                if (slots.bedtime) {
+
+                    const h =
+                        String(
+                            slots.bedtime.h
+                        ).padStart(2, "0");
+
+                    const m =
+                        String(
+                            slots.bedtime.m
+                        ).padStart(2, "0");
+
+                    const time =
+                        `${h}:${m}`;
+
+
+                    document.getElementById(
+                        "bedtimeTime"
+                    ).value = time;
+
+
+                    document.getElementById(
+                        "bedtimeSaved"
+                    ).textContent =
+                        `บันทึกไว้ ${time} น.`;
+
+                }
+
+
+                // --------------------------------
+                // Device status
+                // --------------------------------
+
+                deviceStatus.textContent =
+                    "● เชื่อมต่อแล้ว";
+
+
+                deviceStatus.className =
+                    "text-sm text-green-600 font-semibold";
+
+
+            } catch (error) {
+
+                console.error(
+                    "Load schedule error:",
+                    error
+                );
+
+
+                deviceStatus.textContent =
+                    "● โหลดข้อมูลไม่สำเร็จ";
+
+
+                deviceStatus.className =
+                    "text-sm text-red-500 font-semibold";
+
+
+                showStatus(
+                    "ไม่สามารถโหลดเวลาจากระบบได้",
+                    "error"
+                );
+
+            }
+
+        }
+
+
+        // ========================================
+        // ตรวจสอบเวลา
+        // ========================================
+
+        function validateManualSchedule() {
+
+            const morning =
+                document.getElementById(
+                    "morningTime"
+                ).value;
+
+            const noon =
+                document.getElementById(
+                    "noonTime"
+                ).value;
+
+            const evening =
+                document.getElementById(
+                    "eveningTime"
+                ).value;
+
+            const bedtime =
+                document.getElementById(
+                    "bedtimeTime"
+                ).value;
+
+
+            if (
+                !morning ||
+                !noon ||
+                !evening ||
+                !bedtime
+            ) {
+
+                showStatus(
+                    "กรุณาตั้งเวลาให้ครบทั้ง 4 ช่วง",
+                    "error"
+                );
+
+                return false;
+
+            }
+
+
+            return true;
+
+        }
+
+
+        // ========================================
+        // บันทึกเวลาแบบกำหนดเอง
+        // ========================================
+
+        async function saveManualSchedule() {
+
+            if (!validateManualSchedule()) {
+                return;
+            }
+
+
+            const morning =
+                parseTime(
+                    document.getElementById(
+                        "morningTime"
+                    ).value
+                );
+
+
+            const noon =
+                parseTime(
+                    document.getElementById(
+                        "noonTime"
+                    ).value
+                );
+
+
+            const evening =
+                parseTime(
+                    document.getElementById(
+                        "eveningTime"
+                    ).value
+                );
+
+
+            const bedtime =
+                parseTime(
+                    document.getElementById(
+                        "bedtimeTime"
+                    ).value
+                );
+
+
+            const data = {
+
+                deviceId: DEVICE_ID,
+
+                slots: {
+
+                    morning: {
+                        h: morning.h,
+                        m: morning.m
+                    },
+
+                    noon: {
+                        h: noon.h,
+                        m: noon.m
+                    },
+
+                    evening: {
+                        h: evening.h,
+                        m: evening.m
+                    },
+
+                    bedtime: {
+                        h: bedtime.h,
+                        m: bedtime.m
+                    }
+
+                }
+
+            };
+
+
+            console.log(
+                "Sending update:",
+                data
+            );
+
+
+            const saveButton =
+                document.getElementById(
+                    "saveButton"
+                );
+
+
+            saveButton.disabled = true;
+
+            saveButton.textContent =
+                "กำลังบันทึก...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/web/update-slots",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify(data)
+                        }
+                    );
+
+
+                const result =
+                    await response.json();
+
+
+                console.log(
+                    "Update API:",
+                    result
+                );
+
+
+                if (
+                    !response.ok ||
+                    result.status !== "success"
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "บันทึกไม่สำเร็จ"
+                    );
+
+                }
+
+
+                showStatus(
+                    "บันทึกเวลาการกินยาเรียบร้อยแล้ว ✓",
+                    "success"
+                );
+
+
+                // โหลดข้อมูลจากฐานข้อมูลกลับมาอีกครั้ง
+                await loadSavedSchedule();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Save error:",
+                    error
+                );
+
+
+                showStatus(
+                    error.message ||
+                    "เกิดข้อผิดพลาดในการบันทึก",
+                    "error"
+                );
+
+
+            } finally {
+
+                saveButton.disabled = false;
+
+                saveButton.textContent =
+                    "💾 บันทึกเวลาการกินยา";
+
+            }
+
+        }
+
+
+        // ========================================
+        // บันทึกตาราง
+        // ========================================
+
+        async function saveSchedule() {
+
+            if (scheduleMode === "manual") {
+
+                await saveManualSchedule();
+
+                return;
+
+            }
+
+
+            const interval =
+                Number(
+                    document.getElementById(
+                        "intervalHours"
+                    ).value
+                );
+
+
+            if (
+                !interval ||
+                interval < 1 ||
+                interval > 24
+            ) {
+
+                showStatus(
+                    "กรุณาระบุช่วงเวลา 1–24 ชั่วโมง",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            /*
+                ตอนนี้โหมดทุก X ชั่วโมง
+                ยังไม่ส่งไปบันทึกในฐานข้อมูล
+
+                เพราะฐานข้อมูลปัจจุบันรองรับ
+                4 ช่วงเวลาแบบตายตัว
+
+                จะพัฒนาโหมดนี้ในขั้นตอนถัดไป
+                หลังจากระบบเวลาหลักทำงานสมบูรณ์
+            */
+
+
+            showStatus(
+                `ตั้งค่าแจ้งเตือนทุก ${interval} ชั่วโมงแล้ว`,
+                "success"
+            );
+
+        }
+
+
+        // ========================================
+        // Events
+        // ========================================
+
+        document
+            .getElementById("manualModeButton")
+            .addEventListener(
+                "click",
+                () => setScheduleMode("manual")
+            );
+
+
+        document
+            .getElementById("intervalModeButton")
+            .addEventListener(
+                "click",
+                () => setScheduleMode("interval")
+            );
+
+
+        document
+            .getElementById("intervalHours")
+            .addEventListener(
+                "input",
+                updateIntervalPreview
+            );
+
+
+        document
+            .getElementById("saveButton")
+            .addEventListener(
+                "click",
+                saveSchedule
+            );
+
+
+        // ========================================
+        // เริ่มต้นหน้าเว็บ
+        // ========================================
+
+        setScheduleMode("manual");
+
+        updateIntervalPreview();
+
+        loadSavedSchedule();
+
+    </script>
+
+</body>
+
+</html>

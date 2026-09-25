@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>ประวัติการกินยา | Pocketpill-Sync</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f7ff;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(80, 60, 120, 0.08);
+        }
+
+        .history-card {
+            background: #ffffff;
+            border: 1px solid #eeeafe;
+            border-radius: 20px;
+            padding: 18px;
+            transition: 0.2s;
+        }
+
+        .history-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(80, 60, 120, 0.08);
+        }
+
+        .status-on-time {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .status-delayed {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .empty-box {
+            border: 2px dashed #e5e1f5;
+            border-radius: 20px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <!-- Header -->
+
+    <header class="bg-white border-b border-purple-100">
+
+        <div class="max-w-3xl mx-auto px-5 py-5">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-sm text-purple-500 font-semibold">
+                        ระบบกล่องยาอัจฉริยะ
+                    </p>
+
+                    <h1 class="text-2xl font-bold text-gray-800">
+                        Pocketpill-Sync
+                    </h1>
+
+                </div>
+
+                <div class="text-3xl">
+                    💊
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- Main -->
+
+    <main class="max-w-3xl mx-auto px-5 py-7">
+
+
+        <!-- Navigation -->
+
+        <div class="grid grid-cols-2 gap-3 mb-5">
+
+            <a
+                href="/"
+                class="text-center bg-white border border-purple-100 rounded-2xl py-3 font-semibold text-purple-600"
+            >
+                ⏰ ตั้งเวลา
+            </a>
+
+            <a
+                href="/history.html"
+                class="text-center bg-purple-600 text-white rounded-2xl py-3 font-semibold"
+            >
+                📋 ประวัติ
+            </a>
+
+        </div>
+
+
+        <!-- Title -->
+
+        <section class="card p-6 mb-5">
+
+            <p class="text-sm text-purple-500 font-semibold">
+                ประวัติการกินยา
+            </p>
+
+            <h2 class="text-2xl font-bold text-gray-800 mt-1">
+                ประวัติการกินยา
+            </h2>
+
+            <p class="text-sm text-gray-500 mt-2">
+                ตรวจสอบเวลาที่ตั้งไว้ เวลากินจริง และเวลาที่ล่าช้า
+            </p>
+
+        </section>
+
+
+        <!-- Loading -->
+
+        <div
+            id="loading"
+            class="card p-8 text-center"
+        >
+
+            <div class="text-4xl mb-3">
+                💊
+            </div>
+
+            <p class="text-gray-500">
+                กำลังโหลดประวัติ...
+            </p>
+
+        </div>
+
+
+        <!-- History -->
+
+        <div
+            id="historyList"
+            class="space-y-4 hidden"
+        ></div>
+
+
+        <!-- Empty -->
+
+        <div
+            id="emptyHistory"
+            class="card empty-box hidden"
+        >
+
+            <div class="text-5xl mb-4">
+                📋
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-700">
+                ยังไม่มีประวัติการกินยา
+            </h3>
+
+            <p class="text-sm text-gray-400 mt-2">
+                เมื่อกล่องยาบันทึกการกินยา
+                ประวัติจะแสดงที่หน้านี้
+            </p>
+
+        </div>
+
+
+        <!-- Error -->
+
+        <div
+            id="errorBox"
+            class="card p-6 text-center hidden"
+        >
+
+            <div class="text-4xl mb-3">
+                ⚠️
+            </div>
+
+            <p
+                id="errorMessage"
+                class="text-red-500 font-semibold"
+            >
+                ไม่สามารถโหลดข้อมูลได้
+            </p>
+
+            <button
+                onclick="loadHistory()"
+                class="mt-4 bg-purple-600 text-white px-5 py-3 rounded-xl font-semibold"
+            >
+                ลองอีกครั้ง
+            </button>
+
+        </div>
+
+
+    </main>
+
+
+    <script>
+
+        const DEVICE_ID = "BOX_001";
+
+
+        function getSlotName(slotName) {
+
+            const names = {
+
+                morning: "🌅 เช้า",
+
+                noon: "☀️ กลางวัน",
+
+                evening: "🌇 เย็น",
+
+                bedtime: "🌙 ก่อนนอน"
+
+            };
+
+            return names[slotName] || slotName;
+
+        }
+
+
+        function formatTime(timestamp) {
+
+            if (!timestamp) {
+                return "-";
+            }
+
+            const date =
+                new Date(timestamp * 1000);
+
+            return date.toLocaleTimeString(
+                "th-TH",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false
+                }
+            ) + " น.";
+
+        }
+
+
+        function formatDate(timestamp) {
+
+            if (!timestamp) {
+                return "-";
+            }
+
+            const date =
+                new Date(timestamp * 1000);
+
+            return date.toLocaleDateString(
+                "th-TH",
+                {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+
+        }
+
+
+        function formatDelay(delaySec) {
+
+            if (!delaySec || delaySec <= 0) {
+                return "ตรงเวลา";
+            }
+
+            const minutes =
+                Math.floor(delaySec / 60);
+
+            if (minutes < 60) {
+
+                return `ช้า ${minutes} นาที`;
+
+            }
+
+            const hours =
+                Math.floor(minutes / 60);
+
+            const remainingMinutes =
+                minutes % 60;
+
+            if (remainingMinutes === 0) {
+
+                return `ช้า ${hours} ชั่วโมง`;
+
+            }
+
+            return `ช้า ${hours} ชั่วโมง ${remainingMinutes} นาที`;
+
+        }
+
+
+        function createHistoryCard(item) {
+
+            const isDelayed =
+                item.is_delayed === true ||
+                item.is_delayed === 1;
+
+            const statusClass =
+                isDelayed
+                    ? "status-delayed"
+                    : "status-on-time";
+
+            const statusText =
+                isDelayed
+                    ? "🔴 ล่าช้า"
+                    : "🟢 ตรงเวลา";
+
+
+            return `
+
+                <div class="history-card">
+
+                    <div class="flex items-start justify-between gap-3">
+
+                        <div>
+
+                            <p class="text-lg font-bold text-gray-800">
+
+                                ${getSlotName(item.slot_name)}
+
+                            </p>
+
+                            <p class="text-sm text-gray-400 mt-1">
+
+                                ${formatDate(item.taken_time)}
+
+                            </p>
+
+                        </div>
+
+
+                        <span
+                            class="${statusClass} px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
+                        >
+
+                            ${statusText}
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-2 gap-3 mt-5">
+
+
+                        <div class="bg-purple-50 rounded-xl p-3">
+
+                            <p class="text-xs text-gray-400">
+                                เวลาที่ตั้งไว้
+                            </p>
+
+                            <p class="font-bold text-purple-700 mt-1">
+
+                                ${item.scheduled_time || "-"}
+
+                            </p>
+
+                        </div>
+
+
+                        <div class="bg-blue-50 rounded-xl p-3">
+
+                            <p class="text-xs text-gray-400">
+                                กินจริง
+                            </p>
+
+                            <p class="font-bold text-blue-700 mt-1">
+
+                                ${formatTime(item.taken_time)}
+
+                            </p>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="mt-3 bg-gray-50 rounded-xl p-3">
+
+                        <div class="flex items-center justify-between">
+
+                            <span class="text-sm text-gray-500">
+                                เวลาที่ล่าช้า
+                            </span>
+
+                            <span class="font-bold text-gray-700">
+
+                                ${formatDelay(item.delay_sec)}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+
+
+        async function loadHistory() {
+
+            const loading =
+                document.getElementById("loading");
+
+            const historyList =
+                document.getElementById("historyList");
+
+            const emptyHistory =
+                document.getElementById("emptyHistory");
+
+            const errorBox =
+                document.getElementById("errorBox");
+
+
+            loading.classList.remove("hidden");
+
+            historyList.classList.add("hidden");
+
+            emptyHistory.classList.add("hidden");
+
+            errorBox.classList.add("hidden");
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/api/history?deviceId=${DEVICE_ID}`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "History API:",
+                    data
+                );
+
+
+                if (
+                    !response.ok ||
+                    data.status !== "success"
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "ไม่สามารถโหลดประวัติได้"
+                    );
+
+                }
+
+
+                loading.classList.add("hidden");
+
+
+                if (
+                    !data.history ||
+                    data.history.length === 0
+                ) {
+
+                    emptyHistory.classList.remove(
+                        "hidden"
+                    );
+
+                    return;
+
+                }
+
+
+                historyList.innerHTML =
+                    data.history
+                        .map(createHistoryCard)
+                        .join("");
+
+
+                historyList.classList.remove(
+                    "hidden"
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "History error:",
+                    error
+                );
+
+
+                loading.classList.add("hidden");
+
+                errorBox.classList.remove(
+                    "hidden"
+                );
+
+
+                document.getElementById(
+                    "errorMessage"
+                ).textContent =
+                    error.message ||
+                    "ไม่สามารถโหลดประวัติได้";
+
+            }
+
+        }
+
+
+        loadHistory();
+
+    </script>
+
+</body>
+
+</html>
