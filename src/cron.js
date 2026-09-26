@@ -32,6 +32,30 @@ const slotConfig = [
     }
 ];
 
+const BANGKOK_TIME_ZONE = "Asia/Bangkok";
+
+function getBangkokDateParts(date) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: BANGKOK_TIME_ZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).formatToParts(date);
+
+    return Object.fromEntries(parts
+        .filter(part => part.type !== "literal")
+        .map(part => [part.type, Number(part.value)]));
+}
+
+function getBangkokDayBounds(date) {
+    const { year, month, day } = getBangkokDateParts(date);
+    const bangkokMidnightAsUtc = Date.UTC(year, month - 1, day) - 7 * 60 * 60 * 1000;
+    return {
+        start: Math.floor(bangkokMidnightAsUtc / 1000),
+        end: Math.floor((bangkokMidnightAsUtc + 24 * 60 * 60 * 1000) / 1000)
+    };
+}
+
 
 // ฟังก์ชันตรวจสอบการแจ้งเตือน
 async function checkMedicationReminders() {
@@ -39,19 +63,17 @@ async function checkMedicationReminders() {
     console.log("");
     console.log("========================================");
     console.log("Checking medication reminders...");
-    console.log("Time:", new Date().toLocaleString("th-TH"));
+    console.log("Time:", new Date().toLocaleString("th-TH", { timeZone: BANGKOK_TIME_ZONE }));
     console.log("========================================");
 
 
     // วันที่ปัจจุบัน
     const now = new Date();
 
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const date = now.getDate();
-
+    const { year, month, day } = getBangkokDateParts(now);
     const todayString =
-        `${year}-${String(month + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
+        `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const { start: startOfToday, end: startOfTomorrow } = getBangkokDayBounds(now);
 
 
     // ดึงข้อมูลกล่องยาทั้งหมด
@@ -75,13 +97,7 @@ async function checkMedicationReminders() {
 
             // เวลาที่ควรกินยาในวันนี้
             const scheduledTime = new Date(
-                year,
-                month,
-                date,
-                hour,
-                minute,
-                0,
-                0
+                Date.UTC(year, month - 1, day, hour, minute) - 7 * 60 * 60 * 1000
             );
 
 
@@ -107,8 +123,6 @@ async function checkMedicationReminders() {
             |--------------------------------------------------------------------------
             */
 
-            const startOfToday = Math.floor(new Date(year, month, date).getTime() / 1000);
-            const startOfTomorrow = Math.floor(new Date(year, month, date + 1).getTime() / 1000);
             const takenToday = await database.getLogForSlot(
                 device.device_id,
                 slot.name,
@@ -239,7 +253,11 @@ if (process.env.VERCEL !== "1") {
     });
 }
 
-module.exports = { checkMedicationReminders };
+module.exports = {
+    checkMedicationReminders,
+    getBangkokDateParts,
+    getBangkokDayBounds
+};
 
 
 console.log("Medication reminder cron started");
