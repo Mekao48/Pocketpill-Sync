@@ -345,25 +345,34 @@ router.get("/history", async (req, res) => {
 
 
     // ดึงประวัติจากฐานข้อมูล
-    const logs = await database.getLogs(deviceId, historyLimit);
+    const [logs, settings] = await Promise.all([
+        database.getLogs(deviceId, historyLimit),
+        database.getSettings(deviceId)
+    ]);
 
 
     // แปลงข้อมูลให้อ่านง่าย
-    const history = logs.map(log => ({
-        id: log.id,
-        deviceId: log.device_id,
-        slot_name: log.slot_name,
-        slot_index: log.slot_index,
-        taken_time: log.taken_time,
-        delay_sec: log.delay_sec,
-        delay_min: Math.floor(
-            log.delay_sec / 60
-        ),
-        is_delayed: log.is_delayed,
-        is_skipped: log.is_skipped,
-        next_alert: log.next_alert,
-        created_at: log.created_at
-    }));
+    const history = logs.map(log => {
+        const scheduledSlot = settings?.slots?.[log.slot_name];
+        const scheduledTime = scheduledSlot
+            ? `${String(scheduledSlot.h).padStart(2, "0")}:${String(scheduledSlot.m).padStart(2, "0")} น.`
+            : "-";
+
+        return {
+            id: log.id,
+            deviceId: log.device_id,
+            slot_name: log.slot_name,
+            slot_index: log.slot_index,
+            scheduled_time: scheduledTime,
+            taken_time: log.taken_time,
+            delay_sec: log.delay_sec,
+            delay_min: Math.floor(log.delay_sec / 60),
+            is_delayed: log.is_delayed,
+            is_skipped: log.is_skipped,
+            next_alert: log.next_alert,
+            created_at: log.created_at
+        };
+    });
 
 
     res.json({
