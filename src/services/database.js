@@ -61,7 +61,7 @@ async function getLogs(deviceId, limit) {
     return execute(
         supabase
             .from("pillbox_logs")
-            .select("id,device_id,slot_name,slot_index,taken_time,delay_sec,is_delayed,is_skipped,next_alert,created_at")
+            .select("id,device_id,slot_name,slot_index,scheduled_time,taken_time,delay_sec,is_delayed,is_skipped,next_alert,created_at")
             .eq("device_id", deviceId)
             .order("taken_time", { ascending: false })
             .limit(limit)

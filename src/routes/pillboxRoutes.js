@@ -210,6 +210,16 @@ router.post("/log", async (req, res) => {
         });
     }
 
+    const scheduledSlot = device.slots?.[slot_name];
+    if (!scheduledSlot || !Number.isInteger(scheduledSlot.h) || !Number.isInteger(scheduledSlot.m)) {
+        return res.status(500).json({
+            status: "error",
+            message: "Scheduled time is not configured for this slot"
+        });
+    }
+
+    const scheduledTime = `${String(scheduledSlot.h).padStart(2, "0")}:${String(scheduledSlot.m).padStart(2, "0")}`;
+
 
     // ------------------------------------
     // บันทึกประวัติการกินยา
@@ -218,6 +228,7 @@ router.post("/log", async (req, res) => {
         device_id: deviceId,
         slot_name,
         slot_index,
+        scheduled_time: scheduledTime,
         taken_time,
         delay_sec,
         is_delayed,
@@ -228,7 +239,7 @@ router.post("/log", async (req, res) => {
 
     console.log(
         "Medication log saved:",
-        result.lastInsertRowid
+        result.id
     );
 
 
@@ -345,17 +356,13 @@ router.get("/history", async (req, res) => {
 
 
     // ดึงประวัติจากฐานข้อมูล
-    const [logs, settings] = await Promise.all([
-        database.getLogs(deviceId, historyLimit),
-        database.getSettings(deviceId)
-    ]);
+    const logs = await database.getLogs(deviceId, historyLimit);
 
 
     // แปลงข้อมูลให้อ่านง่าย
     const history = logs.map(log => {
-        const scheduledSlot = settings?.slots?.[log.slot_name];
-        const scheduledTime = scheduledSlot
-            ? `${String(scheduledSlot.h).padStart(2, "0")}:${String(scheduledSlot.m).padStart(2, "0")} น.`
+        const scheduledTime = log.scheduled_time
+            ? `${log.scheduled_time} น.`
             : "-";
 
         return {
