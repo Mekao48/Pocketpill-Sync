@@ -1,7 +1,5 @@
 const express = require("express");
 const crypto = require("crypto");
-const database = require("../services/database");
-
 const router = express.Router();
 
 
@@ -114,26 +112,9 @@ router.post("/webhook", async (req, res) => {
             );
 
 
-            // ------------------------------------
-            // ดึง LINE User ID
-            // ------------------------------------
-            const lineUserId =
-                event.source?.userId;
-
-
-            if (!lineUserId) {
-
-                console.log(
-                    "⚠️ No LINE User ID in this event"
-                );
-
-                continue;
-            }
-
-
             console.log(
-                "LINE User ID:",
-                lineUserId
+                "LINE source type:",
+                event.source?.type || "unknown"
             );
 
 
@@ -159,15 +140,6 @@ router.post("/webhook", async (req, res) => {
             }
 
 
-            // ------------------------------------
-            // บันทึก LINE User ID ให้ BOX_001
-            // ------------------------------------
-            await database.updateLineUser("BOX_001", lineUserId);
-
-
-            console.log(
-                "✅ LINE User ID saved to BOX_001"
-            );
         }
 
 

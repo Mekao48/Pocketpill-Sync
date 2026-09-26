@@ -21,7 +21,7 @@ async function getSettings(deviceId) {
     return execute(
         supabase
             .from("pillbox_settings")
-            .select("device_id,slots,updated_at,line_user_id")
+            .select("device_id,slots,updated_at")
             .eq("device_id", deviceId)
             .maybeSingle()
     );
@@ -42,7 +42,7 @@ async function getOrCreateSettings(deviceId) {
         supabase
             .from("pillbox_settings")
             .upsert({ device_id: deviceId, slots }, { onConflict: "device_id" })
-            .select("device_id,slots,updated_at,line_user_id")
+            .select("device_id,slots,updated_at")
             .single()
     );
 }
@@ -52,7 +52,7 @@ async function saveSettings(deviceId, slots) {
         supabase
             .from("pillbox_settings")
             .upsert({ device_id: deviceId, slots, updated_at: new Date().toISOString() }, { onConflict: "device_id" })
-            .select("device_id,slots,updated_at,line_user_id")
+            .select("device_id,slots,updated_at")
             .single()
     );
 }
@@ -97,7 +97,7 @@ async function getDevices() {
     return execute(
         supabase
             .from("pillbox_settings")
-            .select("device_id,slots,line_user_id")
+            .select("device_id,slots")
     );
 }
 
@@ -125,15 +125,6 @@ async function insertReminder(reminder) {
     );
 }
 
-async function updateLineUser(deviceId, lineUserId) {
-    return execute(
-        supabase
-            .from("pillbox_settings")
-            .update({ line_user_id: lineUserId, updated_at: new Date().toISOString() })
-            .eq("device_id", deviceId)
-    );
-}
-
 module.exports = {
     getSettings,
     getOrCreateSettings,
@@ -143,6 +134,5 @@ module.exports = {
     getLogForSlot,
     getDevices,
     hasReminder,
-    insertReminder,
-    updateLineUser
+    insertReminder
 };

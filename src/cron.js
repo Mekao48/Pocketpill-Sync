@@ -1,6 +1,6 @@
 const cron = require("node-cron");
 const database = require("./services/database");
-const { sendLinePush } = require("./services/lineService");
+const { sendLineBroadcast } = require("./services/lineService");
 
 
 // ชื่อช่วงเวลาสำหรับแสดงใน LINE
@@ -173,10 +173,7 @@ async function checkMedicationReminders() {
             |--------------------------------------------------------------------------
             */
 
-            const lineSent = await sendLinePush(
-                device.line_user_id,
-                lineMessage
-            );
+            const lineSent = await sendLineBroadcast(lineMessage);
 
 
             /*

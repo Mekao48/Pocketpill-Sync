@@ -1,6 +1,6 @@
 const express = require("express");
 const database = require("../services/database");
-const { sendLinePush } = require("../services/lineService");
+const { sendLineBroadcast } = require("../services/lineService");
 
 const router = express.Router();
 
@@ -310,10 +310,7 @@ router.post("/log", async (req, res) => {
 
 
     // ส่ง LINE
-    const lineSent = is_skipped ? false : await sendLinePush(
-        device.line_user_id,
-        lineMessage
-    );
+    const lineSent = is_skipped ? false : await sendLineBroadcast(lineMessage);
 
 
     // ------------------------------------
