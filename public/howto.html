@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="theme-color" content="#f8f7ff">
+	<title>คู่มือการใช้งาน | PocketPill</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<style>
+		:root {
+			color-scheme: light;
+			--ink: #1f2937;
+			--muted: #64748b;
+			--purple: #6d28d9;
+			--line: #e9e4fa;
+			--paper: #f8f7ff;
+		}
+
+		* { box-sizing: border-box; }
+
+		html { scroll-behavior: smooth; }
+
+		body {
+			margin: 0;
+			color: var(--ink);
+			background: var(--paper);
+			font-family: Arial, sans-serif;
+		}
+
+		.page-shell {
+			width: min(100% - 32px, 900px);
+			margin-inline: auto;
+		}
+
+		.guide-panel {
+			background: white;
+			border: 1px solid var(--line);
+			border-radius: 20px;
+			box-shadow: 0 12px 36px rgba(51, 35, 96, 0.06);
+		}
+
+		.section-anchor { scroll-margin-top: 24px; }
+
+		.step-number {
+			display: grid;
+			place-items: center;
+			width: 34px;
+			height: 34px;
+			flex: 0 0 34px;
+			border-radius: 50%;
+			color: white;
+			background: var(--purple);
+			font-weight: 700;
+		}
+
+		.status-row + .status-row { border-top: 1px solid #f0edf8; }
+
+		.signal {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 700;
+			white-space: nowrap;
+		}
+
+		.signal-mark {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			background: currentColor;
+		}
+
+		details > summary { cursor: pointer; }
+
+		details[open] > summary { color: var(--purple); }
+
+		a:focus-visible, summary:focus-visible {
+			outline: 3px solid rgba(109, 40, 217, 0.35);
+			outline-offset: 3px;
+		}
+
+		@media (max-width: 600px) {
+			.page-shell { width: min(100% - 24px, 900px); }
+			.guide-panel { border-radius: 16px; }
+			.status-grid { grid-template-columns: 1fr; }
+		}
+	</style>
+</head>
+<body>
+	<header class="border-b border-purple-100 bg-white">
+		<div class="page-shell flex items-center justify-between gap-4 py-4">
+			<div>
+				<p class="text-sm font-semibold text-purple-600">ระบบกล่องยาอัจฉริยะ</p>
+				<h1 class="text-2xl font-bold text-gray-900">คู่มือ PocketPill</h1>
+			</div>
+			<div aria-hidden="true" class="text-3xl">💊</div>
+		</div>
+	</header>
+
+	<main class="page-shell py-6 sm:py-8">
+		<nav aria-label="เมนูหลัก" class="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
+			<a href="/" class="rounded-xl border border-purple-100 bg-white px-2 py-3 text-center text-sm font-bold text-purple-700">⏰ ตั้งเวลา</a>
+			<a href="/history.html" class="rounded-xl border border-purple-100 bg-white px-2 py-3 text-center text-sm font-bold text-purple-700">📋 ประวัติ</a>
+			<a href="/howto.html" aria-current="page" class="rounded-xl bg-purple-700 px-2 py-3 text-center text-sm font-bold text-white">คู่มือ</a>
+		</nav>
+
+		<section class="guide-panel mb-5 overflow-hidden">
+			<div class="bg-gradient-to-r from-violet-700 to-purple-600 px-5 py-7 text-white sm:px-8 sm:py-9">
+				<p class="mb-2 text-sm font-bold text-violet-100">ESP32-C3 · WI-FI · OFFLINE MODE</p>
+				<h2 class="text-2xl font-bold sm:text-3xl">คู่มือการเชื่อมต่อ Wi-Fi</h2>
+				<p class="mt-3 max-w-2xl text-sm leading-6 text-violet-50 sm:text-base">
+					วิธีเชื่อมต่อเครือข่าย เพิ่ม Wi-Fi ใหม่ อ่านสัญญาณเสียง และเข้าใจการทำงานเมื่อไม่มีอินเทอร์เน็ต
+				</p>
+			</div>
+			<div class="grid gap-3 p-4 sm:grid-cols-3 sm:p-6">
+				<a href="#network" class="rounded-xl border border-purple-100 bg-purple-50 p-4 text-sm font-bold text-purple-800">01 · ระบบเครือข่าย</a>
+				<a href="#sounds" class="rounded-xl border border-purple-100 bg-purple-50 p-4 text-sm font-bold text-purple-800">02 · เสียงสถานะ</a>
+				<a href="#setup" class="rounded-xl border border-purple-100 bg-purple-50 p-4 text-sm font-bold text-purple-800">03 · ตั้งค่า Wi-Fi</a>
+				<a href="#offline" class="rounded-xl border border-purple-100 bg-purple-50 p-4 text-sm font-bold text-purple-800">04 · ออฟไลน์และซิงก์</a>
+				<a href="#troubleshooting" class="rounded-xl border border-purple-100 bg-purple-50 p-4 text-sm font-bold text-purple-800">05 · แก้ปัญหา</a>
+			</div>
+		</section>
+
+		<section id="network" class="guide-panel section-anchor mb-5 p-5 sm:p-7">
+			<p class="text-sm font-bold text-purple-600">01 / NETWORK</p>
+			<h2 class="mt-1 text-xl font-bold">ภาพรวมระบบเครือข่าย</h2>
+			<div class="mt-5 grid gap-3 sm:grid-cols-2">
+				<article class="rounded-xl border border-purple-100 bg-purple-50 p-4">
+					<h3 class="font-bold">จดจำ Wi-Fi ได้หลายจุด</h3>
+					<p class="mt-2 text-sm leading-6 text-slate-600">กล่องยาจำชื่อและรหัสผ่านได้สูงสุด 8 เครือข่ายในหน่วยความจำของบอร์ด เช่น Wi-Fi บ้าน ที่ทำงาน หรือ hotspot มือถือ</p>
+				</article>
+				<article class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+					<h3 class="font-bold">ค้นหาเครือข่ายเมื่อตื่น</h3>
+					<p class="mt-2 text-sm leading-6 text-slate-600">เมื่อออกจาก Deep-sleep ระบบสแกนเครือข่ายที่บันทึกไว้และพยายามเชื่อมต่อภายในประมาณ 8 วินาที</p>
+				</article>
+				<article class="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+					<h3 class="font-bold">ไม่มี Wi-Fi ก็ใช้กล่องได้</h3>
+					<p class="mt-2 text-sm leading-6 text-slate-600">หากเชื่อมต่อไม่ได้ กล่องจะไม่ค้างรอหน้า setup แต่กลับไปทำงานแจ้งเตือนตามเวลาในเครื่อง</p>
+				</article>
+			</div>
+		</section>
+
+		<section id="sounds" class="guide-panel section-anchor mb-5 p-5 sm:p-7">
+			<p class="text-sm font-bold text-purple-600">02 / SOUND SIGNALS</p>
+			<h2 class="mt-1 text-xl font-bold">ฟังเสียงเพื่อดูสถานะ</h2>
+			<div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
+				<div class="status-row grid gap-2 p-4 sm:grid-cols-[220px_1fr]">
+					<span class="signal text-sky-700"><span class="signal-mark"></span>บี๊บสั้น 2 จังหวะ</span>
+					<p class="text-sm leading-6 text-slate-600">กำลังเริ่มค้นหา Wi-Fi หลังเปิดเครื่องหรือตื่นจาก Deep-sleep</p>
+				</div>
+				<div class="status-row grid gap-2 p-4 sm:grid-cols-[220px_1fr]">
+					<span class="signal text-violet-700"><span class="signal-mark"></span>บันไดเสียงขึ้น 4 โน้ต</span>
+					<p class="text-sm leading-6 text-slate-600">ไม่พบ Wi-Fi ที่จำไว้ และกำลังเปิด hotspot สำหรับตั้งค่า</p>
+				</div>
+				<div class="status-row grid gap-2 p-4 sm:grid-cols-[220px_1fr]">
+					<span class="signal text-emerald-700"><span class="signal-mark"></span>เสียงใส 2 ครั้ง</span>
+					<p class="text-sm leading-6 text-slate-600">เชื่อมต่อ Wi-Fi สำเร็จ และพร้อมซิงก์ข้อมูล</p>
+				</div>
+				<div class="status-row grid gap-2 p-4 sm:grid-cols-[220px_1fr]">
+					<span class="signal text-rose-700"><span class="signal-mark"></span>เสียงทุ้มต่ำ 2 ครั้ง</span>
+					<p class="text-sm leading-6 text-slate-600">เชื่อมต่อไม่สำเร็จ ระบบเปลี่ยนไปทำงานออฟไลน์</p>
+				</div>
+				<div class="status-row grid gap-2 p-4 sm:grid-cols-[220px_1fr]">
+					<span class="signal text-amber-700"><span class="signal-mark"></span>ทำนอง 5 โน้ต</span>
+					<p class="text-sm leading-6 text-slate-600">ถึงเวลาทานยา เสียงจะเล่นซ้ำเป็นรอบจนกว่าจะเปิดฝากล่อง</p>
+				</div>
+			</div>
+		</section>
+
+		<section id="setup" class="guide-panel section-anchor mb-5 p-5 sm:p-7">
+			<p class="text-sm font-bold text-purple-600">03 / FIRST-TIME SETUP</p>
+			<h2 class="mt-1 text-xl font-bold">ตั้งค่า Wi-Fi ครั้งแรกหรือเพิ่มเครือข่าย</h2>
+			<p class="mt-2 text-sm leading-6 text-slate-600">ใช้ขั้นตอนนี้เมื่อเริ่มใช้งานครั้งแรก หรือย้ายไปสถานที่ที่มีกล่องยาไม่เคยเชื่อมต่อ Wi-Fi มาก่อน</p>
+
+			<ol class="mt-5 space-y-4">
+				<li class="flex gap-3">
+					<span class="step-number">1</span>
+					<div>
+						<h3 class="font-bold">รอเสียงเปิดโหมดตั้งค่า</h3>
+						<p class="mt-1 text-sm leading-6 text-slate-600">หากกล่องหา Wi-Fi เดิมไม่พบ จะดังบันไดเสียงขึ้น 4 โน้ต และเปิด hotspot ประมาณ 10 นาที</p>
+					</div>
+				</li>
+				<li class="flex gap-3">
+					<span class="step-number">2</span>
+					<div>
+						<h3 class="font-bold">เชื่อมต่อ hotspot จากมือถือ</h3>
+						<p class="mt-1 text-sm leading-6 text-slate-600">เลือก Wi-Fi ชื่อ <strong>PocketPill-Setup</strong> แล้วใส่รหัสผ่าน <strong>12345678</strong></p>
+					</div>
+				</li>
+				<li class="flex gap-3">
+					<span class="step-number">3</span>
+					<div>
+						<h3 class="font-bold">เปิดหน้า Configure WiFi</h3>
+						<p class="mt-1 text-sm leading-6 text-slate-600">หน้าตั้งค่าอาจเปิดเอง หากไม่เปิด ให้เข้าเบราว์เซอร์แล้วไปที่ <code class="rounded bg-slate-100 px-2 py-1">http://192.168.4.1</code> จากนั้นเลือก Configure WiFi</p>
+					</div>
+				</li>
+				<li class="flex gap-3">
+					<span class="step-number">4</span>
+					<div>
+						<h3 class="font-bold">เลือกเครือข่ายและบันทึก</h3>
+						<p class="mt-1 text-sm leading-6 text-slate-600">เลือก Wi-Fi ความถี่ 2.4 GHz กรอกรหัสผ่าน แล้วกด Save</p>
+					</div>
+				</li>
+				<li class="flex gap-3">
+					<span class="step-number">5</span>
+					<div>
+						<h3 class="font-bold">ฟังเสียงยืนยัน</h3>
+						<p class="mt-1 text-sm leading-6 text-slate-600">รอประมาณ 10 วินาที เสียงใส 2 ครั้งหมายถึงเชื่อมต่อสำเร็จ และข้อมูลเครือข่ายถูกจำไว้</p>
+					</div>
+				</li>
+			</ol>
+		</section>
+
+		<section id="offline" class="guide-panel section-anchor mb-5 p-5 sm:p-7">
+			<p class="text-sm font-bold text-purple-600">04 / OFFLINE & SYNC</p>
+			<h2 class="mt-1 text-xl font-bold">เมื่อไม่มีสัญญาณและการส่งข้อมูลย้อนหลัง</h2>
+			<div class="mt-5 space-y-3">
+				<article class="rounded-xl border-l-4 border-emerald-500 bg-emerald-50 p-4">
+					<h3 class="font-bold">ไม่มี Wi-Fi ตอนถึงเวลา</h3>
+					<p class="mt-1 text-sm leading-6 text-slate-700">กล่องสแกนเครือข่ายไม่เกินประมาณ 8 วินาที แล้วข้ามหน้า setup เพื่อให้เสียงเตือนยาทำงานตามเวลาในเครื่อง</p>
+				</article>
+				<article class="rounded-xl border-l-4 border-blue-500 bg-blue-50 p-4">
+					<h3 class="font-bold">เก็บ log ไว้ส่งภายหลัง</h3>
+					<p class="mt-1 text-sm leading-6 text-slate-700">ตามเฟิร์มแวร์ที่ระบุ กล่องเก็บประวัติระหว่างออฟไลน์ได้สูงสุด 15 มื้อ เมื่อกลับมาออนไลน์จะส่งขึ้นระบบ Vercel/Supabase อัตโนมัติ</p>
+				</article>
+				<article class="rounded-xl border-l-4 border-violet-500 bg-violet-50 p-4">
+					<h3 class="font-bold">เปิดฝากล่องค้างไว้</h3>
+					<p class="mt-1 text-sm leading-6 text-slate-700">ถ้ามี Wi-Fi กล่องจะตรวจตารางล่าสุดจากเซิร์ฟเวอร์ทุกประมาณ 10 วินาที เมื่อปิดฝาจะตัด Wi-Fi และกลับเข้า Deep-sleep</p>
+				</article>
+			</div>
+		</section>
+
+		<section id="troubleshooting" class="guide-panel section-anchor mb-5 p-5 sm:p-7">
+			<p class="text-sm font-bold text-purple-600">05 / TROUBLESHOOTING</p>
+			<h2 class="mt-1 text-xl font-bold">แก้ปัญหาเบื้องต้น</h2>
+			<div class="mt-4 space-y-2">
+				<details class="rounded-xl border border-slate-200 p-4">
+					<summary class="font-bold">ไม่พบ Wi-Fi PocketPill-Setup</summary>
+					<p class="mt-3 text-sm leading-6 text-slate-600">ถ้าหมดเวลา setup ประมาณ 10 นาที ให้ปิดกล่องแล้วเปิดใหม่เพื่อเริ่มค้นหา Wi-Fi อีกครั้ง โหมดตั้งค่าจะเปิดเมื่อกล่องเชื่อมต่อเครือข่ายที่จำไว้ไม่ได้เท่านั้น หากกล่องยังต่อ Wi-Fi เดิมได้ การปิด–เปิดจะไม่ลบรหัสเดิมและ hotspot จะไม่ปรากฏ</p>
+				</details>
+				<details class="rounded-xl border border-slate-200 p-4">
+					<summary class="font-bold">เชื่อมต่อ Wi-Fi บ้านไม่สำเร็จ</summary>
+					<p class="mt-3 text-sm leading-6 text-slate-600">ตรวจสอบว่ารหัสผ่านถูกต้องและเราเตอร์เปิดเครือข่าย 2.4 GHz กล่อง ESP32-C3 ไม่รองรับ Wi-Fi 5 GHz</p>
+				</details>
+				<details class="rounded-xl border border-slate-200 p-4">
+					<summary class="font-bold">หน้า setup ไม่เปิดอัตโนมัติ</summary>
+					<p class="mt-3 text-sm leading-6 text-slate-600">ตรวจสอบว่ามือถือเชื่อมต่อ PocketPill-Setup อยู่ แล้วเปิด Safari/Chrome และเข้า <code class="rounded bg-slate-100 px-2 py-1">http://192.168.4.1</code> โดยตรง</p>
+				</details>
+				<details class="rounded-xl border border-slate-200 p-4">
+					<summary class="font-bold">ไม่ได้ยินเสียงเชื่อมต่อสำเร็จ</summary>
+					<p class="mt-3 text-sm leading-6 text-slate-600">รอให้กล่องลองเชื่อมต่อประมาณ 10 วินาที ตรวจสอบรหัสผ่านและสัญญาณ 2.4 GHz หากยังไม่สำเร็จให้ตั้งค่าเครือข่ายใหม่</p>
+				</details>
+			</div>
+		</section>
+
+		<footer class="pb-6 text-center text-xs text-slate-500">
+			คู่มือสำหรับกล่องยา PocketPill ที่ใช้ ESP32-C3 · รายละเอียดการทำงานขึ้นกับเฟิร์มแวร์ที่ติดตั้งในบอร์ด
+		</footer>
+	</main>
+</body>
+</html>
