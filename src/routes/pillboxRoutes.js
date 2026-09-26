@@ -282,7 +282,7 @@ router.post("/log", async (req, res) => {
     if (!is_delayed) {
 
         lineMessage =
-            `คุณแม่ทานยา${slotLabel}เรียบร้อยแล้วค่ะ ` +
+            `ได้ทานยา${slotLabel}เรียบร้อยแล้วค่ะ ` +
             `(ตรงเวลา) รอบถัดไปเวลา ${nextAlertTime} น.`;
 
     }
@@ -297,7 +297,7 @@ router.post("/log", async (req, res) => {
             Math.floor(delay_sec / 60);
 
         lineMessage =
-            `คุณแม่ทานยา${slotLabel}แล้ว ` +
+            `ได้ทานยา${slotLabel}แล้ว ` +
             `(ช้าไป ${delayMinutes} นาที) ` +
             `ระบบปรับเวลาเลื่อนรอบถัดไปเป็น ` +
             `${nextAlertTime} น. ให้อัตโนมัติ`;
