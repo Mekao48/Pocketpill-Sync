@@ -83,6 +83,11 @@ async function checkMedicationReminders() {
     // ตรวจสอบแต่ละกล่อง
     for (const device of devices) {
 
+        if (device.slots?.mode === "interval") {
+            console.log(`[${device.device_id}] interval schedule is managed by ESP32; skipping fixed-slot reminders`);
+            continue;
+        }
+
         // ตรวจสอบทั้ง 4 ช่วงเวลา
         for (const slot of slotConfig) {
 

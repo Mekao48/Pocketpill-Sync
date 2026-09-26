@@ -773,6 +773,8 @@
 
 
                 const slots = data.slots;
+                document.getElementById("intervalHours").value = slots.intervalHours || 4;
+                setScheduleMode(slots.mode === "interval" ? "interval" : "manual");
 
 
                 // Morning
@@ -971,9 +973,18 @@
         // บันทึกเวลาแบบกำหนดเอง
         // ----------------------------------------
 
-        async function saveManualSchedule() {
+        async function saveManualSchedule(mode = "manual") {
 
-            if (!validateManualSchedule()) {
+            if (mode === "manual" && !validateManualSchedule()) {
+                return;
+            }
+
+            const intervalHours = Number(
+                document.getElementById("intervalHours").value
+            );
+
+            if (!Number.isInteger(intervalHours) || intervalHours < 1 || intervalHours > 24) {
+                showStatus("กรุณาระบุช่วงเวลา 1–24 ชั่วโมง", "error");
                 return;
             }
 
@@ -1013,6 +1024,8 @@
             const data = {
 
                 deviceId: DEVICE_ID,
+                mode,
+                intervalHours,
 
                 slots: {
 
@@ -1145,55 +1158,7 @@
         // ----------------------------------------
 
         async function saveSchedule() {
-
-            if (scheduleMode === "manual") {
-
-                await saveManualSchedule();
-
-                return;
-
-            }
-
-
-            const interval =
-                Number(
-                    document.getElementById(
-                        "intervalHours"
-                    ).value
-                );
-
-
-            if (
-                !interval ||
-                interval < 1 ||
-                interval > 24
-            ) {
-
-                showStatus(
-                    "กรุณาระบุช่วงเวลา 1–24 ชั่วโมง",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            /*
-                ตอนนี้โหมดทุก X ชั่วโมง
-                ยังไม่ส่งไปบันทึกในฐานข้อมูล
-
-                เพราะฐานข้อมูลปัจจุบันรองรับ
-                4 ช่วงเวลาแบบตายตัว
-
-                จะพัฒนาโหมดนี้ในขั้นตอนถัดไป
-                หลังจากระบบเวลาหลักทำงานสมบูรณ์
-            */
-
-            showStatus(
-                `ตั้งค่าแจ้งเตือนทุก ${interval} ชั่วโมงแล้ว`,
-                "success"
-            );
+            await saveManualSchedule(scheduleMode);
 
         }
 

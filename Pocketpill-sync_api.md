@@ -24,13 +24,15 @@
 #### 3.1 สำหรับอุปกรณ์ ESP32-C3
 1. **GET `/api/pillbox/sync`**
    - **Query Params:** `deviceId` (string, เช่น `BOX_001`)
-   - **หน้าที่:** ส่งคืนข้อมูลเวลาและสถานะ enabled ของทั้ง 4 มื้อ
+  - **หน้าที่:** ส่งคืน schedule mode, ค่า interval และข้อมูลเวลา/สถานะ enabled ของทั้ง 4 มื้อ
    - **Response (200 OK):**
      ```json
      {
        "status": "success",
        "deviceId": "BOX_001",
        "slots": {
+         "mode": "manual",
+         "intervalHours": 4,
          "morning": { "h": 8, "m": 0, "enabled": true },
          "noon":    { "h": 12, "m": 0, "enabled": false },
          "evening": { "h": 18, "m": 30, "enabled": true },
@@ -69,8 +71,23 @@
    - Query: `deviceId`
    - คืนค่าตารางเวลาปัจจุบันเพื่อนำไปแสดงผลบนฟอร์ม
 2. **PUT `/api/pillbox/settings`**
-   - อัปเดตตารางเวลาและสถานะเปิด/ปิดมื้อยา
-   - Request Body: `{ "deviceId": "BOX_001", "slots": { ... } }`
+   - อัปเดตโหมดและตารางเวลา
+   - `mode` คือ `manual` หรือ `interval`; `intervalHours` ต้องเป็นจำนวนเต็ม 1–24
+   - Request Body:
+     ```json
+     {
+       "deviceId": "BOX_001",
+       "mode": "interval",
+       "intervalHours": 4,
+       "slots": {
+         "morning": { "h": 8, "m": 0, "enabled": true },
+         "noon": { "h": 12, "m": 0, "enabled": true },
+         "evening": { "h": 18, "m": 0, "enabled": true },
+         "bedtime": { "h": 21, "m": 0, "enabled": true }
+       }
+     }
+     ```
+   - Backward compatibility: หากไม่ส่ง `mode` จะถือเป็น `manual`; หากไม่ส่ง `intervalHours` จะใช้ `4`
 3. **GET `/api/pillbox/history`**
    - Query: `deviceId`, `limit` (default: 20)
    - คืนรายการ Log ประวัติการกินยาย้อนหลัง เรียงจากล่าสุดไปเก่าสุด
@@ -87,3 +104,11 @@
    - หน้าจอ UI สะอาด เรียบง่าย ดูบนมือถือได้สะดวก (Mobile-Friendly)
    - ฟอร์มแก้ไขเวลาและสวิตช์ Toggle เปิด/ปิด แต่ละมื้อยา พร้อมปุ่มบันทึก
    - ตารางแสดงประวัติย้อนหลัง พร้อม Badge แสดงสถานะ (ตรงเวลา / ล่าช้า / ข้ามมื้อ)
+
+### 5. ข้อกำหนด ESP32 สำหรับ Interval Mode
+- อ่าน `slots.mode` และ `slots.intervalHours` จาก response ของ `/api/pillbox/sync`
+- เมื่อ `mode == "manual"` ให้ใช้ slots ทั้ง 4 ตามเดิม
+- เมื่อ `mode == "interval"` ให้ใช้ `intervalHours`; ไม่ใช้เวลา fixed ของ 4 slots ในการตั้ง alarm
+- เมื่อบอร์ดส่ง log ใน interval mode ใช้ `slot_name: "interval"` และ `slot_index` เป็นลำดับรอบยา เริ่มจาก 0 และเพิ่มขึ้นทุกครั้ง
+- `scheduled_time` ใน history API คำนวณจาก `taken_time - delay_sec` สำหรับ log แบบ interval
+- ดูตัวแปรและ flow ตัวอย่างใน [`ESP32_INTERVAL_MODE.md`](ESP32_INTERVAL_MODE.md)

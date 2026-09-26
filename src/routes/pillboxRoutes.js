@@ -33,7 +33,7 @@ router.get("/settings", async (req, res) => {
 });
 
 router.put("/settings", async (req, res) => {
-    const { deviceId, slots } = req.body || {};
+    const { deviceId, slots, mode = "manual", intervalHours = 4 } = req.body || {};
 
     if (!isValidDeviceId(deviceId)) {
         return res.status(400).json({ status: "error", message: "deviceId is required" });
@@ -41,6 +41,14 @@ router.put("/settings", async (req, res) => {
 
     if (!slots || typeof slots !== "object" || Array.isArray(slots)) {
         return res.status(400).json({ status: "error", message: "slots must be an object" });
+    }
+
+    if (!['manual', 'interval'].includes(mode)) {
+        return res.status(400).json({ status: "error", message: "mode must be manual or interval" });
+    }
+
+    if (!Number.isInteger(intervalHours) || intervalHours < 1 || intervalHours > 24) {
+        return res.status(400).json({ status: "error", message: "intervalHours must be an integer between 1 and 24" });
     }
 
     for (const name of ["morning", "noon", "evening", "bedtime"]) {
@@ -55,7 +63,11 @@ router.put("/settings", async (req, res) => {
         }
     }
 
-    const saved = await database.saveSettings(deviceId, slots);
+    const saved = await database.saveSettings(deviceId, {
+        ...slots,
+        mode,
+        intervalHours
+    });
     res.json({ status: "success", deviceId, slots: serializeSlots(saved) });
 });
 
@@ -122,7 +134,8 @@ router.post("/log", async (req, res) => {
         "morning",
         "noon",
         "evening",
-        "bedtime"
+        "bedtime",
+        "interval"
     ];
 
     if (!allowedSlots.includes(slot_name)) {
@@ -136,14 +149,12 @@ router.post("/log", async (req, res) => {
     // ------------------------------------
     // ตรวจสอบ slot_index
     // ------------------------------------
-    if (
-        !Number.isInteger(slot_index) ||
-        slot_index < 0 ||
-        slot_index > 3
-    ) {
+    if (!Number.isInteger(slot_index) || slot_index < 0 ||
+        slot_index > 2147483647 ||
+        (slot_name !== "interval" && slot_index > 3)) {
         return res.status(400).json({
             status: "error",
-            message: "slot_index must be between 0 and 3"
+            message: "slot_index must be 0-3 for manual meals or a non-negative integer for interval doses"
         });
     }
 
@@ -210,15 +221,34 @@ router.post("/log", async (req, res) => {
         });
     }
 
+    const intervalMode = device.slots?.mode === "interval";
+    if (intervalMode !== (slot_name === "interval")) {
+        return res.status(400).json({
+            status: "error",
+            message: intervalMode
+                ? "slot_name must be interval when schedule mode is interval"
+                : "slot_name must be a configured meal when schedule mode is manual"
+        });
+    }
+
     const scheduledSlot = device.slots?.[slot_name];
-    if (!scheduledSlot || !Number.isInteger(scheduledSlot.h) || !Number.isInteger(scheduledSlot.m)) {
+    let scheduledTime;
+
+    if (intervalMode) {
+        scheduledTime = new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Asia/Bangkok",
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h23"
+        }).format(new Date((taken_time - delay_sec) * 1000));
+    } else if (scheduledSlot && Number.isInteger(scheduledSlot.h) && Number.isInteger(scheduledSlot.m)) {
+        scheduledTime = `${String(scheduledSlot.h).padStart(2, "0")}:${String(scheduledSlot.m).padStart(2, "0")}`;
+    } else {
         return res.status(500).json({
             status: "error",
             message: "Scheduled time is not configured for this slot"
         });
     }
-
-    const scheduledTime = `${String(scheduledSlot.h).padStart(2, "0")}:${String(scheduledSlot.m).padStart(2, "0")}`;
 
 
     // ------------------------------------
@@ -251,7 +281,8 @@ router.post("/log", async (req, res) => {
         morning: "เช้า",
         noon: "เที่ยง",
         evening: "เย็น",
-        bedtime: "ก่อนนอน"
+        bedtime: "ก่อนนอน",
+        interval: "ตามรอบ"
     };
 
     const slotLabel =

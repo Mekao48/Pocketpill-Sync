@@ -32,6 +32,8 @@ async function getOrCreateSettings(deviceId) {
     if (settings) return settings;
 
     const slots = {
+        mode: "manual",
+        intervalHours: 4,
         morning: { h: 8, m: 0, enabled: true },
         noon: { h: 12, m: 0, enabled: true },
         evening: { h: 18, m: 0, enabled: true },
