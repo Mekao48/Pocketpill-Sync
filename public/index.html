@@ -60,6 +60,60 @@
             box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
         }
 
+        .meal-toggle {
+            appearance: none;
+            width: 32px;
+            height: 32px;
+            flex: 0 0 32px;
+            margin: 0;
+            border: 2px solid #a78bfa;
+            border-radius: 50%;
+            background: white;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .meal-toggle:checked {
+            background: #7c3aed;
+            border-color: #7c3aed;
+        }
+
+        .meal-toggle:checked::after {
+            content: "";
+            width: 8px;
+            height: 14px;
+            border: solid white;
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg) translate(-1px, -1px);
+        }
+
+        .meal-toggle:focus-visible {
+            outline: 3px solid rgba(124, 58, 237, 0.3);
+            outline-offset: 3px;
+        }
+
+        .slot-card:has(.meal-toggle:checked) {
+            background: #7c3aed;
+            border-color: #7c3aed;
+        }
+
+        .slot-card:has(.meal-toggle:checked) p,
+        .slot-card:has(.meal-toggle:checked) label,
+        .slot-card:has(.meal-toggle:checked) span {
+            color: white;
+        }
+
+        .slot-card:has(.meal-toggle:checked) .meal-toggle:checked {
+            background: white;
+            border-color: white;
+        }
+
+        .slot-card:has(.meal-toggle:checked) .meal-toggle:checked::after {
+            border-color: #7c3aed;
+        }
+
         .mode-button {
             border: 2px solid #e5e1f5;
             background: white;
@@ -265,7 +319,7 @@
                         </div>
                         <input id="morningTime" type="hidden" value="08:00">
                         <label class="mt-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                            <input id="morningEnabled" type="checkbox" checked class="accent-purple-600">
+                            <input id="morningEnabled" type="checkbox" checked class="meal-toggle">
                             เปิดใช้งานมื้อนี้
                         </label>
 
@@ -304,7 +358,7 @@
                         </div>
                         <input id="noonTime" type="hidden" value="12:00">
                         <label class="mt-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                            <input id="noonEnabled" type="checkbox" checked class="accent-purple-600">
+                            <input id="noonEnabled" type="checkbox" checked class="meal-toggle">
                             เปิดใช้งานมื้อนี้
                         </label>
 
@@ -343,7 +397,7 @@
                         </div>
                         <input id="eveningTime" type="hidden" value="18:00">
                         <label class="mt-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                            <input id="eveningEnabled" type="checkbox" checked class="accent-purple-600">
+                            <input id="eveningEnabled" type="checkbox" checked class="meal-toggle">
                             เปิดใช้งานมื้อนี้
                         </label>
 
@@ -382,7 +436,7 @@
                         </div>
                         <input id="bedtimeTime" type="hidden" value="21:00">
                         <label class="mt-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                            <input id="bedtimeEnabled" type="checkbox" checked class="accent-purple-600">
+                            <input id="bedtimeEnabled" type="checkbox" checked class="meal-toggle">
                             เปิดใช้งานมื้อนี้
                         </label>
 
